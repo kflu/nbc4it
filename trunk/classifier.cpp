@@ -121,14 +121,16 @@ Classifier::test(void)
 
     // Begin testing
     for( size_t i=0;i<nTest;i++ ) {
+#ifdef __CLASSIFICATION_DEBUG__
+	fprintf(stdout, "(D) Testing %d-th instance (total %d).\n",
+		i+1,nTest);
+#endif
 	const Instance& inst = dataset()[test_set()[i]];
-	Attribute klass = inst[class_index()];
+	const size_t ci = class_index();
 
-	assert( !klass.unknown );
+	if (inst[ci].unknown) continue;
 
-	NominalType est_c = classify_inst( inst );
-	NominalType true_c = inst[class_index()].value.nom;
-	conf()[est_c][true_c]++;
+	conf()[classify_inst(inst)][inst[ci].value.nom] ++ ;
     }
     // Normalize the conf matrix
     // for each row:
@@ -173,8 +175,22 @@ StatisticsClassifier::classify_inst(const Instance& inst, double* maxProb)
     return curMaxClassIndex;
 }
 
+double 
+StatisticsClassifier::
+a_posteriori(const NominalType c, const Instance& inst)
+{
+    const size_t nClass = get_class_desc().possible_value_vector().size();
+    double pInstOnC = prob_inst_on_class(inst, c);
+    double pC = pClass()[c];
+    double pInst = 0;
+    for (size_t i=0;i<nClass;i++) {
+	pInst += prob_inst_on_class(inst,i) * pClass()[i];
+    }
+    return pInstOnC * pC / pInst;
+}
+
 double
-NaiveBayesClassifier::
+StatisticsClassifier::
 est_class_prob(const size_t c_index) const
 {
     assert(!train_set().empty());
@@ -197,13 +213,15 @@ est_class_prob(const size_t c_index) const
     if (sum==0) {
 	fprintf(stderr, "(W) No Training instance belongs to class %s (%d).\n",
 		get_class_desc().map(c_index).c_str(), c_index);
+	fprintf(stderr, "(W)   ... Probability set to 0.\n");
+	return 0.0;
     }
     return sum/nTrain;
 }
 
 double 
 NaiveBayesClassifier::
-est_att_prob_on_class(const ValueType& value, const size_t att_i, const size_t class_j) const
+att_prob_on_class(const ValueType& value, const size_t att_i, const size_t class_j) const
 {
     // Check if training/testing set has been specified before.
     assert(!train_set().empty());
@@ -215,105 +233,45 @@ est_att_prob_on_class(const ValueType& value, const size_t att_i, const size_t c
     return _attDistrOnClass.prob(value, att_i, class_j);
 }
 
-void
-NaiveBayesClassifier::
+void 
+StatisticsClassifier::
 train(void)
 {
-    fprintf(stdout, "(I) Training the model...\n");
-
+    fprintf(stdout, "(I) StatisticsClassifier: Training the model...\n");
     assert(!train_set().empty());
     assert(!test_set().empty());
 
-    pClass().clear();
-    //distrAttOnClass().clear();
-
     // Obtaining _pClass:
+    pClass().clear();
     size_t nClass = get_class_desc().possible_value_vector().size();
     for ( size_t i=0;i<nClass;i++ ) {
 	pClass().push_back( est_class_prob(i) );
     }
+}
 
+void
+NaiveBayesClassifier::
+train(void)
+{
+    StatisticsClassifier::train();
+    fprintf(stdout, "(I) NaiveBayesClassifier: Training the model...\n");
+
+    assert(!train_set().empty());
+    assert(!test_set().empty());
+
+    // Obtaining _attDistrOnClass:
     const size_t nAtt = dataset().num_of_att();
     const size_t ci = class_index();
-    // Obtaining _attDistrOnClass:
+    size_t nClass = get_class_desc().possible_value_vector().size();
     for ( size_t i=0; i<nAtt; i++ ) {
+#ifdef __CLASSIFICATION_DEBUG__
+	fprintf(stdout, "(D) NaiveBayesClassifier: training on %d-th attribute (total: %d).\n", i+1, nAtt);
+#endif
 	if ( i == ci ) continue;
 	for ( size_t j=0; j<nClass; j++ ) {
 	    calc_distr_for_att_on_class(i,j);
-	    //Distribution *& pDistr = attDistrOnClass().table()[j][i];
-	    //pDistr = calc_distr_for_att_on_class(i,j);
 	}
     }
-    // for ( size_t i=0; i<nAtt; i++ ) {
-    //     if ( i == ci ) continue;
-    //     const AttDesc& desc = dataset().get_att_desc(i);
-    //     if (desc.get_type() ==  ATT_TYPE_NUMERIC) {
-    //         /* Temp struct, used to collect statistics to evaluate the 
-    //          * Gaussian distributions. */
-    //         struct Tmp {
-    //     	double sum;
-    //     	double sq_sum; // squared sum
-    //     	size_t N; // num of inst belongs to a class
-    //         };
-    //         vector<Tmp> sta(nClass);
-    //         // Scan all the instances, 
-    //         // collect statistics for P(A_i|C_k), for all k.
-    //         for ( size_t j=0; j<nInst; j++ ) {
-    //     	// class unknown instance, don't count
-    //     	if ( dataset()[j][ci].unknown ) continue;
-    //     	if ( dataset()[j][i].unknown ) continue;
-    //     	NominalType klass = dataset()[j][ci].value.nom;
-    //     	sta[klass].sum += dataset()[j][i].value.num;
-    //     	sta[klass].sq_sum += pow(dataset()[j][i].value.num,2);
-    //     	sta[klass].N ++;
-    //         }
-    //         // Calculate mean and var for A_i|C_k for all k, 
-    //         // put mean and var of A_i|C_k, for all k, into 
-    //         // attDistrOnClass table column i
-    //         for (size_t k=0; k<nClass; k++) {
-    //     	Distribution*& pDistr = attDistrOnClass().table()[k][i];
-    //     	pDistr = new NormalDistribution;
-    //     	pDistr->mean() = sta[k].sum / sta[k].N;
-    //     	pDistr->var() = sta[k].sq_sum / (sta[k].N - 1);
-    //         }
-    //     }
-    //     else if (desc.get_type() == ATT_TYPE_NOMINAL) {
-    //         struct Tmp {
-    //     	// num of positive instance
-    //     	size_t nPosInstInClassK;
-    //     	size_t nClassK;
-    //         };
-    //     }
-    //     else {
-    //         fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
-    //     	    desc.map(desc.get_type()).c_str(),desc.get_type());
-    //         exit(1);
-    //     }
-    // }
-
-    //for ( size_t i=0;i<nClass;i++ ) {
-    //    for (size_t j=0;j<nAtt;j++ ) {
-    //        if ( j == ci ) continue;
-
-    //        // j is garranteed an attribute, not the class
-    //        const AttDesc& desc = dataset().get_att_desc(j);
-    //        if ( desc.get_type() == ATT_TYPE_NUMERIC ) {
-    //    	size_t sum = 0; 
-    //    	size_t N = 0; // num of inst belongs to this class
-    //    	size_t sqr_sum = 0;
-    //    	for (size_t k=0;k<nInst;k++) {
-
-    //    	}
-    //        }
-    //        else if (desc.get_type() == ATT_TYPE_NOMINAL) {
-    //        }
-    //        else {
-    //    	fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
-    //    		desc.map(desc.get_type()).c_str(),desc.get_type());
-    //    	exit(1);
-    //        }
-    //    }
-    //}
 }
 
 //Distribution* 
@@ -354,12 +312,16 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	    nInstBelongsToThisClass ++;
 	}
 	if (nInstBelongsToThisClass==0) {
-	    fprintf(stderr, "(E) No instances belongs to class:%s(%d).\n",
-		    desc.map(desc.get_type()).c_str(),desc.get_type());
-	    exit(1);
+	    /** When no instances belongs to this class, the _pClass should have 
+	     * been already set to 0. Set the corresponding conditional probability 
+	     * to invalid to indicate that when evaluating this conditional 
+	     * probability, 0 should be returned. */
+	    ((NormalDistribution*)pDistr)->invalid() = 0;
+	    return;
 	}
 	((NormalDistribution*)pDistr)->mean() = sum/nInstBelongsToThisClass;
 	((NormalDistribution*)pDistr)->var() = sq_sum/(nInstBelongsToThisClass-1);
+	return;
     }
     else if (desc.get_type() == ATT_TYPE_NOMINAL) {
 	//pDistr = new NominalDistribution;
@@ -375,20 +337,21 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	    ((NominalDistribution*)pDistr)->pmf()[att.value.nom] ++;
 	}
 	// Handle zero sum issue and so on.
-	if (sum==0) {
-	    fprintf(stderr, "(E) No instances belongs to class:%s(%d).\n",
-		    desc.map(desc.get_type()).c_str(),desc.get_type());
-	    exit(1);
-	}
 	bool zero_issue=0;
-	for (size_t i=0;i<nClass;i++) {
-	    size_t n = ((NominalDistribution*)pDistr)->pmf()[i];
-	    if (n==0) {
-		zero_issue = 1;
-	    }
+	if (sum==0) {
+	    /** When no instances belongs to this class, for Nominal type attributes, 
+	     * we can assume the possible values of this attribute is equally likely 
+	     * to be chosen. So this zero-instance issue can be addressed the same 
+	     * way as the zero possibility issue stated as later. So simply set zero_issue 
+	     * flags to 1. */
+	    zero_issue = 1;
 	}
-	/**
-	 * Handle the zero possibility issue.
+	for (size_t i=0;i<nClass;i++) {
+	    if ( ((NominalDistribution*)pDistr)->pmf()[i] != 0 )
+		continue;
+	    zero_issue = 1;
+	}
+	/** Handle the zero possibility issue.
 	 *
 	 * p{A_j|C_i} = N(A_j,C_i) / N(C_i)
 	 *
@@ -406,8 +369,7 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	 * attribute.
 	 *
 	 * For example, 0/3, 3/3 will become 1/5, 4/5; 
-	 * 0/3, 1/3, 2/3 will become 1/6, 2/6, 3/6.
-	 */
+	 * 0/3, 1/3, 2/3 will become 1/6, 2/6, 3/6. */
 	size_t nPos = ds.get_att_desc(att_i).possible_value_vector().size();
 	for (size_t i=0;i<nClass;i++) {
 	    if (!zero_issue) {
@@ -416,17 +378,11 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 		((NominalDistribution*)pDistr)->pmf()[i] = (((NominalDistribution*)pDistr)->pmf()[i] + 1) / (sum + nPos);
 	    }
 	}
+	return;
     }
     fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
 	    desc.map(desc.get_type()).c_str(),desc.get_type());
     exit(1);
-}
-
-double 
-NaiveBayesClassifier::
-a_posteriori(const NominalType c, const Instance& inst)
-{
-    return 0;
 }
 
 void 
@@ -435,6 +391,21 @@ bind_dataset(const Dataset& dataset)
 {
     Classifier::bind_dataset(dataset);
     attDistrOnClass().init_table();
+}
+
+const double 
+NaiveBayesClassifier::
+prob_inst_on_class( const Instance& inst, const NominalType c ) const
+{
+    const size_t nAtt = dataset().num_of_att();
+    const size_t ci = class_index();
+    double product = 1;
+    for (size_t i=0;i<nAtt;i++) {
+	if (ci == i) continue;
+	if (inst[i].unknown) continue;
+	product *= att_prob_on_class(inst[i].value, i, c);
+    }
+    return product;
 }
 
 void
@@ -500,5 +471,6 @@ const double
 NormalDistribution::
 prob(const ValueType value) const
 {
+    if (invalid()) return .0;
     return (1/sqrt(2*PI*var())) * exp( - pow(value.num-mean(),2) / (2*var()) );
 }
