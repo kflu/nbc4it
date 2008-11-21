@@ -232,8 +232,187 @@ train(void)
 	pClass().push_back( est_class_prob(i) );
     }
 
+    const size_t nAtt = dataset().num_of_att();
+    const size_t ci = class_index();
     // Obtaining _attDistrOnClass:
+    for ( size_t i=0; i<nAtt; i++ ) {
+	if ( i == ci ) continue;
+	for ( size_t j=0; j<nClass; j++ ) {
+	    Distribution *& pDistr = attDistrOnClass().table()[j][i];
+	    pDistr = calc_distr_for_att_on_class(i,j);
+	}
+    }
+    // for ( size_t i=0; i<nAtt; i++ ) {
+    //     if ( i == ci ) continue;
+    //     const AttDesc& desc = dataset().get_att_desc(i);
+    //     if (desc.get_type() ==  ATT_TYPE_NUMERIC) {
+    //         /* Temp struct, used to collect statistics to evaluate the 
+    //          * Gaussian distributions. */
+    //         struct Tmp {
+    //     	double sum;
+    //     	double sq_sum; // squared sum
+    //     	size_t N; // num of inst belongs to a class
+    //         };
+    //         vector<Tmp> sta(nClass);
+    //         // Scan all the instances, 
+    //         // collect statistics for P(A_i|C_k), for all k.
+    //         for ( size_t j=0; j<nInst; j++ ) {
+    //     	// class unknown instance, don't count
+    //     	if ( dataset()[j][ci].unknown ) continue;
+    //     	if ( dataset()[j][i].unknown ) continue;
+    //     	NominalType klass = dataset()[j][ci].value.nom;
+    //     	sta[klass].sum += dataset()[j][i].value.num;
+    //     	sta[klass].sq_sum += pow(dataset()[j][i].value.num,2);
+    //     	sta[klass].N ++;
+    //         }
+    //         // Calculate mean and var for A_i|C_k for all k, 
+    //         // put mean and var of A_i|C_k, for all k, into 
+    //         // attDistrOnClass table column i
+    //         for (size_t k=0; k<nClass; k++) {
+    //     	Distribution*& pDistr = attDistrOnClass().table()[k][i];
+    //     	pDistr = new NormalDistribution;
+    //     	pDistr->mean() = sta[k].sum / sta[k].N;
+    //     	pDistr->var() = sta[k].sq_sum / (sta[k].N - 1);
+    //         }
+    //     }
+    //     else if (desc.get_type() == ATT_TYPE_NOMINAL) {
+    //         struct Tmp {
+    //     	// num of positive instance
+    //     	size_t nPosInstInClassK;
+    //     	size_t nClassK;
+    //         };
+    //     }
+    //     else {
+    //         fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
+    //     	    desc.map(desc.get_type()).c_str(),desc.get_type());
+    //         exit(1);
+    //     }
+    // }
 
+    //for ( size_t i=0;i<nClass;i++ ) {
+    //    for (size_t j=0;j<nAtt;j++ ) {
+    //        if ( j == ci ) continue;
+
+    //        // j is garranteed an attribute, not the class
+    //        const AttDesc& desc = dataset().get_att_desc(j);
+    //        if ( desc.get_type() == ATT_TYPE_NUMERIC ) {
+    //    	size_t sum = 0; 
+    //    	size_t N = 0; // num of inst belongs to this class
+    //    	size_t sqr_sum = 0;
+    //    	for (size_t k=0;k<nInst;k++) {
+
+    //    	}
+    //        }
+    //        else if (desc.get_type() == ATT_TYPE_NOMINAL) {
+    //        }
+    //        else {
+    //    	fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
+    //    		desc.map(desc.get_type()).c_str(),desc.get_type());
+    //    	exit(1);
+    //        }
+    //    }
+    //}
+}
+
+Distribution* 
+NaiveBayesClassifier::
+calc_distr_for_att_on_class(size_t att_i, size_t class_j) const
+{
+    const Dataset& ds = dataset();
+    const size_t nInst = ds.num_of_inst();
+    const size_t ci = class_index();
+    const size_t nClass = ds.get_att_desc(ci).possible_value_vector().size();
+
+    // att_i is not the class attribute:
+    if (att_i == ci) {
+	fprintf(stderr, "(E) Attribute must not be the class attribute.\n");
+	exit(1);
+    }
+
+    // This value to later store the new'd distribution 
+    // and will be returned.
+    Distribution* pDistr = NULL;
+    // find type of this att:
+    const AttDesc& desc = ds.get_att_desc(att_i);
+    if (desc.get_type() == ATT_TYPE_NUMERIC) {
+	pDistr = new NormalDistribution;
+	double sum=0;
+	double sq_sum=0;
+	size_t nInstBelongsToThisClass=0;
+	for (size_t i=0;i<nInst;i++) {
+	    const Attribute& klass = ds[i][ci];
+	    const Attribute& att = ds[i][att_i];
+	    if (klass.unknown) continue;
+	    if (att.unknown) continue;
+	    if (klass.value.nom != class_j) continue;
+	    sum += att.value.num;
+	    sq_sum += pow(att.value.num,2);
+	    nInstBelongsToThisClass ++;
+	}
+	((NormalDistribution*)pDistr)->mean() = sum/nInstBelongsToThisClass;
+	((NormalDistribution*)pDistr)->var() = sq_sum/(nInstBelongsToThisClass-1);
+	return pDistr;
+    }
+    else if (desc.get_type() == ATT_TYPE_NOMINAL) {
+	pDistr = new NominalDistribution;
+	((NominalDistribution*)pDistr)->pmf().resize(nClass,0.0);
+	size_t sum = 0;
+	for (size_t i=0;i<nInst;i++) {
+	    const Attribute& klass = ds[i][ci];
+	    const Attribute& att = ds[i][att_i];
+	    if (klass.unknown) continue;
+	    if (att.unknown) continue;
+	    if (klass.value.nom != class_j) continue;
+	    sum ++;
+	    ((NominalDistribution*)pDistr)->pmf()[att.value.nom] ++;
+	}
+	// Handle zero sum issue and so on.
+	if (sum==0) {
+	    fprintf(stderr, "(E) No instances belongs to class:%s(%d).\n",
+		    desc.map(desc.get_type()).c_str(),desc.get_type());
+	    exit(1);
+	}
+	bool zero_issue=0;
+	for (size_t i=0;i<nClass;i++) {
+	    size_t n = ((NominalDistribution*)pDistr)->pmf()[i];
+	    if (n==0) {
+		zero_issue = 1;
+	    }
+	}
+	// handle this issue here.
+	/**
+	 * p{A_j|C_i} = N(A_j,C_i) / N(C_i)
+	 *
+	 * if N(A_j,C_i) == 0, means there's no such instance
+	 * having A_j value and belongs to class C_i.
+	 * This can be handled as:
+	 *
+	 * \verbatim
+	                N(A_j,C_i) + 1
+	 p{A_j|C_i} = ----------------- ,
+	                N(C_i) + nPos
+	   \endverbatim
+	 *
+	 * where nPos is the num of possible values of this 
+	 * attribute.
+	 *
+	 * For example, 0/3, 3/3 will become 1/5, 4/5; 
+	 * 0/3, 1/3, 2/3 will become 1/6, 2/6, 3/6.
+	 */
+	size_t nPos = ds.get_att_desc(att_i).possible_value_vector().size();
+	for (size_t i=0;i<nClass;i++) {
+	    if (!zero_issue) {
+		((NominalDistribution*)pDistr)->pmf()[i] /= sum;
+	    } else {
+		((NominalDistribution*)pDistr)->pmf()[i] = (((NominalDistribution*)pDistr)->pmf()[i] + 1) / (sum + nPos);
+	    }
+	}
+	return pDistr;
+    }
+    // shouldn't reach here.
+    fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
+	    desc.map(desc.get_type()).c_str(),desc.get_type());
+    exit(1);
 }
 
 double 
@@ -306,3 +485,4 @@ AttDistrOnClass::
     _table.clear();
     return;
 }
+
