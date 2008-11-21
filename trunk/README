@@ -1,0 +1,67 @@
+=================================
+Files:
+
+common.h
+----
+Commonly included header files.
+
+dateset.h & dataset.cpp
+----
+Contains date structure and member function description for the Data set, instances, attribute, etc.
+
+dataset_test.cpp
+----
+Test on read in from a arff format file to a Dataset structure.
+
+
+
+=================================
+To Compile:
+
+`make' to compile and `make clean' to clean.
+`make doc' will make the Doxygen documetation.
+`make backup' will backup the project into a tarball in ../.
+
+NOTE: To make the test work. One needs a TSH format data named `test.dat' i n current dir.
+
+
+=================================
+TSH (time sequenced headers) format 
+
+     0                   1                   2                   3
+     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 0  |                    timestamp (seconds)                        | Time
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 1  |  interface #  |          timestamp (microseconds)             |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 2  |Version|  IHL  |Type of Service|          Total Length         | IP
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 3  |         Identification        |Flags|      Fragment Offset    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 4  |  Time to Live |    Protocol   |         Header Checksum       |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 5  |                       Source Address                          |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 6  |                    Destination Address                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 7  |          Source Port          |       Destination Port        | TCP
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 8  |                        Sequence Number                        |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 9  |                    Acknowledgment Number                      |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |  Data |           |U|A|P|R|S|F|                               |
+ 10 | Offset| Reserved  |R|C|S|S|Y|I|            Window             |
+    |       |           |G|K|H|T|N|N|                               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+===============================
+Reference
+
+Data set from A. Moore (.arff)	http://www.cl.cam.ac.uk/research/srg/netos/nprobe/data/papers/sigmetrics/index.html
+Data set from MIT (DARPA)	http://www.ll.mit.edu/mission/communications/ist/corpora/ideval/tools.html
+NLANR trace website		http://pma.nlanr.net/Traces/
+TCP reference			http://www.freesoft.org/CIE/Course/Section4/index.htm
+tcptrace manual			http://www.tcptrace.org/manual.html
