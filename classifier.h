@@ -173,13 +173,40 @@ class Classifier {
  * Classifier based on Maximum A Posteriori criteria.
  */
 class StatisticsClassifier : public Classifier {
+    private:
+	/** The PMF of the class attribute random variable. */
+	vector<double>	_pClass; 
+
+	/**
+	 * Estimate the i-th class's probability.
+	 *
+	 * ONLY use training instances. This is used for obtaining 
+	 * class attribute PMF.
+	 */
+	double est_class_prob(const size_t i) const;
+
     public:
+	vector<double>& pClass(void) {return _pClass;}
+	const vector<double>& pClass(void) const {return _pClass;}
+	/** Obtain prob of an instance given class index.
+	 *
+	 * This method has different implementation depending on which 
+	 * algorithm used, i.e., Naive Bayesian method with/without 
+	 * kernel estimatioin.
+	 */
+	virtual const double prob_inst_on_class( const Instance& inst, 
+		const NominalType c ) const =0;
+
 	StatisticsClassifier(const Dataset& ds,
 		const size_t ci, 
 		const bool useAllAtt=1) : Classifier(ds,ci,useAllAtt) {};
 
 	NominalType classify_inst(const Instance& inst, double* maxProb=NULL);
-	virtual double a_posteriori(const NominalType c, const Instance& inst) = 0;
+	double a_posteriori(const NominalType c, const Instance& inst);
+	/** Train the model.
+	 *
+	 * In here it means to estimate the _pClass vector. */
+	virtual void train(void);
 };
 
 /**
@@ -204,7 +231,16 @@ class NormalDistribution : public Distribution {
     private:
 	NumericType _mean;
 	NumericType _var;
+	/** By default this should be 0 to indicate a normal Normal 
+	 * Distribution. But when the distribution is not available, 
+	 * i.e., no training instance can be used to train this 
+	 * distribution, the _invalid field will be set to 1, to indicate 
+	 * that when evaluating a probability from this distribution, 
+	 * 0 should be returned. */
+	bool _invalid;
     public:
+	bool& invalid() {return _invalid;}
+	const bool& invalid() const {return _invalid;}
 	NumericType& mean() {return _mean;}
 	const NumericType& mean() const {return _mean;}
 	NumericType& var() {return _var;}
@@ -271,7 +307,6 @@ class AttDistrOnClass {
  */
 class NaiveBayesClassifier : public StatisticsClassifier {
     private:
-	vector<double>	_pClass; ///< prob of a class.
 	/** 
 	 * Distribution of attr conditioned on class.
 	 *
@@ -283,29 +318,19 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 */
 	AttDistrOnClass _attDistrOnClass;
 
-	/*
-	 * The estimation functions are only used by train()
-	 * to train the model.
-	 */
 	/**
-	 * Estimate the i-th class's probability.
+	 * Get the conditional prob of i-th att value given j-th class.
 	 *
-	 * ONLY use training instances.
-	 */
-	double est_class_prob(const size_t i) const;
-
-	/**
-	 * Estimate the conditional prob of i-th att value given j-th class.
-	 *
-	 * This method is based on the trained model, i.e. _pClass, _attDistrOnClass, 
+	 * This method is based on the trained model, the value of _attDistrOnClass, 
 	 * which is trained by the train() method. Don't use it before the model is 
-	 * actually trained.
+	 * trained.
 	 */
-	virtual double est_att_prob_on_class(const ValueType& value, const size_t att_i, const size_t class_j) const;
+	virtual double att_prob_on_class(const ValueType& value, const size_t att_i, const size_t class_j) const;
 
 	/**
 	 * Calculate a Distribution for RV att_i conditioned on class_j.
 	 *
+	 * This method is used to train the conditional probs.
 	 * The obtained distribution information will be directly stored 
 	 * to the attribute distribution table (attDistrOnClass()).
 	 */
@@ -313,20 +338,7 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 
     public:
 	virtual void bind_dataset(const Dataset& dataset);
-	vector<double>& pClass(void) {return _pClass;}
-	const vector<double>& pClass(void) const {return _pClass;}
-	//vector< vector<double> >& distrAttOnClass(void) {return _distrAttOnClass;}
 	AttDistrOnClass& attDistrOnClass(void) {return _attDistrOnClass;}
-
-	/**
-	 * Calculate the a posteriori probability in Naive Bayesian method.
-	 *
-	 * Here attributes are assumed to be independent to each other, so
-	 *  that the joint prob. can be evaluated as the product of marginal 
-	 *  prob. Futhurmore, the attributes' marginal probs are assumed to 
-	 *  be normally distributed.
-	 */
-	double a_posteriori(const NominalType c, const Instance& inst);
 
 	/*
 	 * Train the model.
@@ -336,31 +348,25 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 *
 	 * Handles the issue in which the probability may be zero.
 	 */
-	void train(void);
+	virtual void train(void);
+
+	/** Calculate prob of an instance given a class. 
+	 *
+	 * In NaiveBayesClassifier, this is done by assuming attributes are 
+	 * independent to each other, and numerical attributes are normally 
+	 * distributed given a class label. 
+	 *
+	 * This may be changed by its inherited class, like Kernel. */
+	virtual const double prob_inst_on_class( const Instance& inst, 
+		const NominalType c ) const;
 
 	NaiveBayesClassifier(const Dataset& ds,
 		const size_t classIndex,
 		const bool useAllAtt=1) : StatisticsClassifier(ds,classIndex,useAllAtt) 
 	{
 	    attDistrOnClass().bind_classifier(*this);
+	    attDistrOnClass().init_table();
 	}
 };
-
-// /**
-//  * Only used for half-way testing.
-//  */
-// class NaiveBayesClassifierFake : public StatisticsClassifier {
-//     private:
-//     public:
-// 	void train(void)
-// 	{
-// 	    // do nothing.
-// 	}
-// 	double a_posteriori(const NominalType c, const Instance& inst)
-// 	{
-// 	    if (c==0) return 1.0;
-// 	    return 0.0;
-// 	}
-// };
 
 #endif

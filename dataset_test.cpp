@@ -18,13 +18,14 @@ int main()
     Dataset dataset("test.arff");
 
     NaiveBayesClassifier c(dataset,248);
-    c.bind_dataset(dataset);
+    //c.bind_dataset(dataset);
     //c.class_index() = 248;
 
     //c.randomize();
     //c.ran_tt_set();
     c.init_tt_set();
     c.train();
+    cout << "im here..."<<endl;
     c.test();
 
     /*
