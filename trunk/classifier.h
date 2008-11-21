@@ -178,36 +178,24 @@ class StatisticsClassifier : public Classifier {
 	virtual double a_posteriori(const NominalType c, const Instance& inst) = 0;
 };
 
-// class NormalDistribution {
-//     public:
-// 	NumericType _mean;
-// 	NumericType _var;
-// 	const double pdf(const NumericType value) const;
-// };
-// 
-// class NominalDistribution {
-//     public:
-// 	/** The probability mass function. */
-// 	vector<double> _pmf;
-// 	const double pmf(const NominalType value) const;
-// };
-// 
-// /**
-//  * Class that can describe different distributions.
-//  *
-//  * Can be extended by adding new distributions to the end of the list,
-//  * but don't put too large types here. The use of union is partially
-//  * because its saving in space.
-//  */
-// union Distribution {
-//     NormalDistribution normal;
-//     NominalDistribution nominal;
-// };
+/**
+ * The distributioin's base class.
+ *
+ * There can be different kinds of distributions, each with a different
+ * way to describe. Thus the base class only provide the interface an 
+ * inherited class must implement: a method that returns a probability
+ * when feed with a value.
+ */
 class Distribution {
     public:
 	virtual const double prob(ValueType value) const = 0;
 };
 
+/**
+ * Normal Distribution describer.
+ *
+ * Specified by the mean and variance.
+ */
 class NormalDistribution : public Distribution {
     private:
 	NumericType _mean;
@@ -216,6 +204,9 @@ class NormalDistribution : public Distribution {
 	const double prob(const ValueType value) const;
 };
 
+/**
+ * Nominal Distribution describer.
+ */
 class NominalDistribution : public Distribution {
     private:
 	vector<double> _pmf;
@@ -223,6 +214,15 @@ class NominalDistribution : public Distribution {
 	const double prob(const ValueType value) const;
 };
 
+/**
+ * A table storing distribution of the attributes conditioned on class value.
+ *
+ * Element [r,c] corresponds to r-th class and c-th attribute, 
+ * that is, the distribution information of the random variable of 
+ * r-th attribute given class is c.
+ *
+ * \sa NaiveBayesClassifier::_attDistrOnClass
+ */
 class AttDistrOnClass {
     private:
 	/**
@@ -267,8 +267,9 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 * Element [r,c] corresponds to r-th class and c-th attribute, 
 	 * that is, the distribution information of the random variable of 
 	 * r-th attribute given class is c.
+	 *
+	 * \sa AttDistrOnClass
 	 */
-	//vector< vector<Distribution> > _distrAttOnClass; 
 	AttDistrOnClass _attDistrOnClass;
 
 	/*
