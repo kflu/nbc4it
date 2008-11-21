@@ -6,15 +6,16 @@
 
 #include "classifier.h"
 
+#define PI 3.1415926
 #define __CLASSIFICATION_DEBUG__
 
-Classifier::Classifier( const Dataset* dataset,
+Classifier::Classifier( const Dataset& dataset,
 	    const size_t classIndex,
 	    const bool useAllAtt)
 	    //const RSeed seed,
 	    //const double tt_ratio)
 {
-    _bindedDataset = dataset;
+    _bindedDataset = &dataset;
     _classIndex = classIndex;
     _useAllAtt = useAllAtt;
     //_seed = seed;
@@ -238,8 +239,9 @@ train(void)
     for ( size_t i=0; i<nAtt; i++ ) {
 	if ( i == ci ) continue;
 	for ( size_t j=0; j<nClass; j++ ) {
-	    Distribution *& pDistr = attDistrOnClass().table()[j][i];
-	    pDistr = calc_distr_for_att_on_class(i,j);
+	    calc_distr_for_att_on_class(i,j);
+	    //Distribution *& pDistr = attDistrOnClass().table()[j][i];
+	    //pDistr = calc_distr_for_att_on_class(i,j);
 	}
     }
     // for ( size_t i=0; i<nAtt; i++ ) {
@@ -314,9 +316,10 @@ train(void)
     //}
 }
 
-Distribution* 
+//Distribution* 
+void
 NaiveBayesClassifier::
-calc_distr_for_att_on_class(size_t att_i, size_t class_j) const
+calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 {
     const Dataset& ds = dataset();
     const size_t nInst = ds.num_of_inst();
@@ -331,11 +334,12 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j) const
 
     // This value to later store the new'd distribution 
     // and will be returned.
-    Distribution* pDistr = NULL;
+    //Distribution* pDistr = NULL;
+    Distribution*& pDistr = attDistrOnClass().table()[class_j][att_i];
     // find type of this att:
     const AttDesc& desc = ds.get_att_desc(att_i);
     if (desc.get_type() == ATT_TYPE_NUMERIC) {
-	pDistr = new NormalDistribution;
+	//pDistr = new NormalDistribution;
 	double sum=0;
 	double sq_sum=0;
 	size_t nInstBelongsToThisClass=0;
@@ -349,12 +353,16 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j) const
 	    sq_sum += pow(att.value.num,2);
 	    nInstBelongsToThisClass ++;
 	}
+	if (nInstBelongsToThisClass==0) {
+	    fprintf(stderr, "(E) No instances belongs to class:%s(%d).\n",
+		    desc.map(desc.get_type()).c_str(),desc.get_type());
+	    exit(1);
+	}
 	((NormalDistribution*)pDistr)->mean() = sum/nInstBelongsToThisClass;
 	((NormalDistribution*)pDistr)->var() = sq_sum/(nInstBelongsToThisClass-1);
-	return pDistr;
     }
     else if (desc.get_type() == ATT_TYPE_NOMINAL) {
-	pDistr = new NominalDistribution;
+	//pDistr = new NominalDistribution;
 	((NominalDistribution*)pDistr)->pmf().resize(nClass,0.0);
 	size_t sum = 0;
 	for (size_t i=0;i<nInst;i++) {
@@ -379,8 +387,9 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j) const
 		zero_issue = 1;
 	    }
 	}
-	// handle this issue here.
 	/**
+	 * Handle the zero possibility issue.
+	 *
 	 * p{A_j|C_i} = N(A_j,C_i) / N(C_i)
 	 *
 	 * if N(A_j,C_i) == 0, means there's no such instance
@@ -407,9 +416,7 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j) const
 		((NominalDistribution*)pDistr)->pmf()[i] = (((NominalDistribution*)pDistr)->pmf()[i] + 1) / (sum + nPos);
 	    }
 	}
-	return pDistr;
     }
-    // shouldn't reach here.
     fprintf(stderr, "(E) Unsupported attribute type: %s(%d).\n",
 	    desc.map(desc.get_type()).c_str(),desc.get_type());
     exit(1);
@@ -434,7 +441,10 @@ void
 AttDistrOnClass::
 init_table(void)
 {
-    assert(_classifier);
+    if (!_classifier) {
+	fprintf(stderr, "(E) No binding classifier.\n");
+	exit(1);
+    }
 
     const Classifier & c = classifier();
     size_t nAtt = c.dataset().num_of_att() - 1;
@@ -486,3 +496,9 @@ AttDistrOnClass::
     return;
 }
 
+const double 
+NormalDistribution::
+prob(const ValueType value) const
+{
+    return (1/sqrt(2*PI*var())) * exp( - pow(value.num-mean(),2) / (2*var()) );
+}
