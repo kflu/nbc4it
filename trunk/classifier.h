@@ -201,6 +201,11 @@ class NormalDistribution : public Distribution {
 	NumericType _mean;
 	NumericType _var;
     public:
+	NumericType& mean() {return _mean;}
+	const NumericType& mean() const {return _mean;}
+	NumericType& var() {return _var;}
+	const NumericType& var() const {return _var;}
+	
 	const double prob(const ValueType value) const;
 };
 
@@ -211,6 +216,8 @@ class NominalDistribution : public Distribution {
     private:
 	vector<double> _pmf;
     public:
+	vector<double>& pmf() {return _pmf;}
+	const vector<double>& pmf() const {return _pmf;}
 	const double prob(const ValueType value) const;
 };
 
@@ -291,6 +298,19 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 * actually trained.
 	 */
 	virtual double est_att_prob_on_class(const ValueType& value, const size_t att_i, const size_t class_j) const;
+
+	/**
+	 * Calculate a Distribution for RV att_i conditioned on class_j.
+	 *
+	 * \return A new'd pointer to a Distribution (or the inherited 
+	 * classes like NormalDistribution).
+	 *
+	 * NOTE that it'll return a new'd pointer because the distribution 
+	 * may be an interitance of class Distribution. So use a Distribution* 
+	 * to carry the return value. This should be standardly done by store 
+	 * this pointer in the AttDistrOnClass table.
+	 */
+	virtual Distribution* calc_distr_for_att_on_class(size_t att_i, size_t class_j) const;
 
     public:
 	virtual void bind_dataset(const Dataset& dataset);
