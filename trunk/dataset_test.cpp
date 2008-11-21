@@ -17,9 +17,9 @@ int main()
 
     Dataset dataset("test.arff");
 
-    NaiveBayesClassifierFake c;
+    NaiveBayesClassifier c(dataset,248);
     c.bind_dataset(dataset);
-    c.class_index() = 248;
+    //c.class_index() = 248;
 
     //c.randomize();
     //c.ran_tt_set();

@@ -162,8 +162,8 @@ class Classifier {
 	void print_performance(void);
 	
 
-	Classifier( const Dataset* dataset = NULL,
-	    const size_t classIndex = 0,
+	Classifier( const Dataset& dataset,
+	    const size_t classIndex,
 	    const bool useAllAtt = 1);
 	    //const RSeed seed = 0,
 	    //const double tt_ratio = 2.0 );
@@ -174,6 +174,10 @@ class Classifier {
  */
 class StatisticsClassifier : public Classifier {
     public:
+	StatisticsClassifier(const Dataset& ds,
+		const size_t ci, 
+		const bool useAllAtt=1) : Classifier(ds,ci,useAllAtt) {};
+
 	NominalType classify_inst(const Instance& inst, double* maxProb=NULL);
 	virtual double a_posteriori(const NominalType c, const Instance& inst) = 0;
 };
@@ -218,7 +222,7 @@ class NominalDistribution : public Distribution {
     public:
 	vector<double>& pmf() {return _pmf;}
 	const vector<double>& pmf() const {return _pmf;}
-	const double prob(const ValueType value) const;
+	const double prob(const ValueType value) const {return pmf().at(value.nom);}
 };
 
 /**
@@ -302,15 +306,10 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	/**
 	 * Calculate a Distribution for RV att_i conditioned on class_j.
 	 *
-	 * \return A new'd pointer to a Distribution (or the inherited 
-	 * classes like NormalDistribution).
-	 *
-	 * NOTE that it'll return a new'd pointer because the distribution 
-	 * may be an interitance of class Distribution. So use a Distribution* 
-	 * to carry the return value. This should be standardly done by store 
-	 * this pointer in the AttDistrOnClass table.
+	 * The obtained distribution information will be directly stored 
+	 * to the attribute distribution table (attDistrOnClass()).
 	 */
-	virtual Distribution* calc_distr_for_att_on_class(size_t att_i, size_t class_j) const;
+	virtual void calc_distr_for_att_on_class(size_t att_i, size_t class_j);
 
     public:
 	virtual void bind_dataset(const Dataset& dataset);
@@ -339,24 +338,29 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 */
 	void train(void);
 
-	NaiveBayesClassifier() {attDistrOnClass().bind_classifier(*this);}
+	NaiveBayesClassifier(const Dataset& ds,
+		const size_t classIndex,
+		const bool useAllAtt=1) : StatisticsClassifier(ds,classIndex,useAllAtt) 
+	{
+	    attDistrOnClass().bind_classifier(*this);
+	}
 };
 
-/**
- * Only used for half-way testing.
- */
-class NaiveBayesClassifierFake : public StatisticsClassifier {
-    private:
-    public:
-	void train(void)
-	{
-	    // do nothing.
-	}
-	double a_posteriori(const NominalType c, const Instance& inst)
-	{
-	    if (c==0) return 1.0;
-	    return 0.0;
-	}
-};
+// /**
+//  * Only used for half-way testing.
+//  */
+// class NaiveBayesClassifierFake : public StatisticsClassifier {
+//     private:
+//     public:
+// 	void train(void)
+// 	{
+// 	    // do nothing.
+// 	}
+// 	double a_posteriori(const NominalType c, const Instance& inst)
+// 	{
+// 	    if (c==0) return 1.0;
+// 	    return 0.0;
+// 	}
+// };
 
 #endif
