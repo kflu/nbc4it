@@ -205,28 +205,56 @@ class StatisticsClassifier : public Classifier {
 // };
 class Distribution {
     public:
-	virtual const double prob(ValueType value) const {
-	    fprintf(stderr, "Calling Distribution::prob() is prohibited.\n");
-	    assert(1);
-	    return 0;
-	}
+	virtual const double prob(ValueType value) const = 0;
 };
 
-class NormalDistribution :: public Distribution {
+class NormalDistribution : public Distribution {
     private:
 	NumericType _mean;
 	NumericType _var;
     public:
-	const double prob(ValueType value) const;
+	const double prob(const ValueType value) const;
 };
 
-class NominalDistribution :: public Distribution {
+class NominalDistribution : public Distribution {
     private:
 	vector<double> _pmf;
     public:
-	const double prob(ValueType value) const;
+	const double prob(const ValueType value) const;
 };
 
+class AttDistrOnClass {
+    private:
+	/**
+	 * The binded Classifier.
+	 */
+	const Classifier* _classifier;
+	/** 
+	 * Distribution of attr conditioned on class.
+	 *
+	 * Element [r,c] corresponds to r-th class and c-th attribute, 
+	 * that is, the distribution information of the random variable of 
+	 * r-th attribute given class is c.
+	 */
+	vector< vector<Distribution*> > _table;
+    public:
+	~AttDistrOnClass();
+	/*
+	 * Initialize the attribute distribution on class table.
+	 */
+	void init_table();
+
+	vector< vector<Distribution*> > & table() {return _table;}
+	void bind_classifier(const Classifier& c) {_classifier = &c;}
+	const Classifier& classifier(void) {assert(_classifier);return *_classifier;}
+	const double prob(const ValueType& value, const size_t att_i, const size_t class_j) const
+	{
+	    assert(_classifier);
+	    assert(!_table.empty());
+	    assert(_table[class_j][att_i]);
+	    return _table[class_j][att_i]->prob(value);
+	}
+};
 /**
  * Naive Bayesian method.
  */
@@ -240,7 +268,8 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 * that is, the distribution information of the random variable of 
 	 * r-th attribute given class is c.
 	 */
-	vector< vector<Distribution> > _distrAttOnClass; 
+	//vector< vector<Distribution> > _distrAttOnClass; 
+	AttDistrOnClass _attDistrOnClass;
 
 	/*
 	 * The estimation functions are only used by train()
@@ -256,16 +285,18 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	/**
 	 * Estimate the conditional prob of i-th att value given j-th class.
 	 *
-	 * This method is based on the trained model, i.e. _pClass, _distrAttOnClass, 
+	 * This method is based on the trained model, i.e. _pClass, _attDistrOnClass, 
 	 * which is trained by the train() method. Don't use it before the model is 
 	 * actually trained.
 	 */
-	virtual double est_att_prob_on_class(const size_t att_i, const size_t class_j) const;
+	virtual double est_att_prob_on_class(const ValueType& value, const size_t att_i, const size_t class_j) const;
 
     public:
 	virtual void bind_dataset(const Dataset& dataset);
 	vector<double>& pClass(void) {return _pClass;}
-	vector< vector<double> >& distrAttOnClass(void) {return _distrAttOnClass;}
+	const vector<double>& pClass(void) const {return _pClass;}
+	//vector< vector<double> >& distrAttOnClass(void) {return _distrAttOnClass;}
+	AttDistrOnClass& attDistrOnClass(void) {return _attDistrOnClass;}
 
 	/**
 	 * Calculate the a posteriori probability in Naive Bayesian method.
@@ -281,11 +312,13 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	 * Train the model.
 	 *
 	 * Using train_class_prob() and train_att_prob_on_class() and put the 
-	 * corresponding values in _pClass and _distrAttOnClass.
+	 * corresponding values in _pClass and _attDistrOnClass.
 	 *
 	 * Handles the issue in which the probability may be zero.
 	 */
 	void train(void);
+
+	NaiveBayesClassifier() {attDistrOnClass().bind_classifier(*this);}
 };
 
 /**

@@ -174,14 +174,14 @@ StatisticsClassifier::classify_inst(const Instance& inst, double* maxProb)
 
 double
 NaiveBayesClassifier::
-est_class_prob(const size_t class_index) const
+est_class_prob(const size_t c_index) const
 {
     assert(!train_set().empty());
     assert(!test_set().empty());
 
     const AttDesc & classDesc = get_class_desc();
     size_t nClass = classDesc.possible_value_vector().size();
-    assert(class_index<nClass);
+    assert(c_index<nClass);
 
     // count num of instance belongs to class i:
     const size_t nTrain = train_set().size();
@@ -190,12 +190,12 @@ est_class_prob(const size_t class_index) const
     for ( size_t j=0;j<nTrain;j++ ) {
 	const Attribute& c = dataset()[train_set()[j]][this->class_index()];
 	if (c.unknown) {continue;}
-	if (c.value.nom == class_index) {sum ++;}
+	if (c.value.nom == c_index) {sum ++;}
     }
     /** Handling zero-instance issue (no inst. belongs to this class). */
     if (sum==0) {
-	fprintf(stderr, "(W) No Training instance belongs to class %s (%d)."
-		get_class_desc().map(class_index).c_str, class_index);
+	fprintf(stderr, "(W) No Training instance belongs to class %s (%d).\n",
+		get_class_desc().map(c_index).c_str(), c_index);
     }
     return sum/nTrain;
 }
@@ -210,17 +210,8 @@ est_att_prob_on_class(const ValueType& value, const size_t att_i, const size_t c
 
     // Check if train() has been called before.
     assert(!pClass().empty());
-    assert(!distrAttOnClass().empty());
 
-    const AttDesc& desc = dataset().get_att_desc(att_i);
-    if ( desc.get_type() == ATT_TYPE_NUMERIC ) {
-	return distrAttOnClass()[class_j][att_i].normal.pdf(value.num);
-    }
-    else if ( desc.get_type() == ATT_TYPE_NOMINAL ) {
-	return distrAttOnClass()[class_j][att_i].nominal.pmf(value.nom);
-    }
-    // shouldn't reach here.
-    fprintf(stderr, "(E) Unsupported attribute type: %d.\n", desc.get_type());
+    return _attDistrOnClass.prob(value, att_i, class_j);
 }
 
 void
@@ -233,7 +224,7 @@ train(void)
     assert(!test_set().empty());
 
     pClass().clear();
-    distrAttOnClass().clear();
+    //distrAttOnClass().clear();
 
     // Obtaining _pClass:
     size_t nClass = get_class_desc().possible_value_vector().size();
@@ -241,7 +232,7 @@ train(void)
 	pClass().push_back( est_class_prob(i) );
     }
 
-    // Obtaining _distrAttOnClass:
+    // Obtaining _attDistrOnClass:
 
 }
 
@@ -249,4 +240,69 @@ double
 NaiveBayesClassifier::
 a_posteriori(const NominalType c, const Instance& inst)
 {
+    return 0;
+}
+
+void 
+NaiveBayesClassifier::
+bind_dataset(const Dataset& dataset)
+{
+    Classifier::bind_dataset(dataset);
+    attDistrOnClass().init_table();
+}
+
+void
+AttDistrOnClass::
+init_table(void)
+{
+    assert(_classifier);
+
+    const Classifier & c = classifier();
+    size_t nAtt = c.dataset().num_of_att() - 1;
+    size_t cIndex = c.class_index();
+    size_t nClass = c.get_class_desc().possible_value_vector().size();
+
+    {
+	vector<Distribution*> distr;
+	Distribution* tmp;
+	for (size_t i=0;i<nAtt+1;i++) {
+	    if (i==cIndex) continue;
+	    const AttDesc& desc = c.dataset().get_att_desc(i);
+	    if (desc.get_type() == ATT_TYPE_NUMERIC) {
+		tmp = new NormalDistribution;
+		distr.push_back(tmp);
+	    }
+	    else if (desc.get_type() == ATT_TYPE_NOMINAL) {
+		tmp = new NominalDistribution;
+		distr.push_back(tmp);
+	    }
+	    else {
+		fprintf(stderr, "(E) Unsupported type: %s (%d).\n",
+			desc.map(desc.get_type()).c_str(), desc.get_type());
+	    }
+	}
+	for (size_t i=0;i<nClass;i++) {
+	    table().push_back(distr);
+	}
+    }
+}
+
+AttDistrOnClass::
+~AttDistrOnClass()
+{
+    // Free all pointers
+    if (_table.empty()) return;
+
+    size_t nRow = _table.size();
+    for (size_t i=0;i<nRow;i++) {
+	for (size_t j=0;j<_table[i].size();j++) {
+	    if (_table[i][j]) {
+		delete _table[i][j];
+		_table[i][j] = NULL;
+	    }
+	}
+    }
+
+    _table.clear();
+    return;
 }
