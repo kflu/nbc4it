@@ -1,0 +1,27 @@
+#!/bin/sh
+# next line start with tclsh \
+exec tclsh "$0" "$@"
+
+###
+# This script renames the names of attributes in a arff file from 
+#   1 to N, where N is the number of total num. of attributes.
+#
+# The output will be wrote to stdout.
+#
+# It takes the arff file name as the only argument.
+#
+# Author Kefei Lu
+# 2008-11-19
+
+set file_name [lindex $argv 0];
+
+set fr [open $file_name "r"];
+
+set count 1;
+while {[gets $fr buf] >= 0} {
+    set matched [regsub {@attribute [0-9][0-9]* } $buf "@attribute $count " newbuf];
+    if {$matched == 1} {
+	incr count;
+    }
+    puts $newbuf;
+}
