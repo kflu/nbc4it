@@ -143,6 +143,7 @@ Classifier::test(void)
 	accuracy() = (double)sum / nTest;
 #ifdef __CLASSIFICATION_DEBUG__
 	fprintf(stdout, "(D) Accuracy: %g.\n",accuracy());
+	fprintf(stdout, "(D) Correct: %d, Total: %d\n",sum,nTest);
 #endif
     }
 
