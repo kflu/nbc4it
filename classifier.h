@@ -80,7 +80,7 @@ class Classifier {
 	 * other methods.
 	 */
 	virtual NominalType 
-	    classify_inst(const Instance& inst, double* maxProb=NULL) = 0;
+	    classify_inst(const Instance& inst, double* maxProb=NULL) const = 0;
 
     private:
 	/* =============== Performances ================== */
@@ -201,8 +201,9 @@ class StatisticsClassifier : public Classifier {
 		const size_t ci, 
 		const bool useAllAtt=1) : Classifier(ds,ci,useAllAtt) {};
 
-	NominalType classify_inst(const Instance& inst, double* maxProb=NULL);
-	double a_posteriori(const NominalType c, const Instance& inst);
+	NominalType classify_inst(const Instance& inst, double* maxProb=NULL) const;
+	double a_posteriori(const NominalType c, const Instance& inst) const;
+	double likelihood(const NominalType c, const Instance& inst) const;
 	/** Train the model.
 	 *
 	 * In here it means to estimate the _pClass vector. */
