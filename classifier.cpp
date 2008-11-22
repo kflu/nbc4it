@@ -438,26 +438,27 @@ init_table(void)
     size_t nClass = c.get_class_desc().possible_value_vector().size();
 
     {
-	vector<Distribution*> distr;
 	Distribution* tmp;
-	for (size_t i=0;i<nAtt+1;i++) {
-	    if (i==cIndex) continue;
-	    const AttDesc& desc = c.dataset().get_att_desc(i);
-	    if (desc.get_type() == ATT_TYPE_NUMERIC) {
-		tmp = new NormalDistribution;
-		distr.push_back(tmp);
+	table().clear();
+	table().resize(nClass);
+	for (size_t j=0;j<nClass;j++) {
+	    table()[j].clear();
+	    table()[j].resize(nAtt);
+	    for (size_t i=0;i<nAtt+1;i++) {
+		if (i==cIndex) continue;
+		const AttDesc& desc = c.dataset().get_att_desc(i);
+		if (desc.get_type() == ATT_TYPE_NUMERIC) {
+		    tmp = new NormalDistribution;
+		}
+		else if (desc.get_type() == ATT_TYPE_NOMINAL) {
+		    tmp = new NominalDistribution;
+		}
+		else {
+		    fprintf(stderr, "(E) Unsupported type: %s (%d).\n",
+			    desc.map(desc.get_type()).c_str(), desc.get_type());
+		}
+		table()[j][i] = tmp;
 	    }
-	    else if (desc.get_type() == ATT_TYPE_NOMINAL) {
-		tmp = new NominalDistribution;
-		distr.push_back(tmp);
-	    }
-	    else {
-		fprintf(stderr, "(E) Unsupported type: %s (%d).\n",
-			desc.map(desc.get_type()).c_str(), desc.get_type());
-	    }
-	}
-	for (size_t i=0;i<nClass;i++) {
-	    table().push_back(distr);
 	}
     }
 }

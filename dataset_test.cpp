@@ -13,7 +13,7 @@ using namespace std;
 
 int main()
 {
-    stdout = stderr;
+    //stdout = stderr;
 
     Dataset dataset("test.arff");
 
