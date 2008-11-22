@@ -140,7 +140,7 @@ Classifier::test(void)
 	    // The diagonal is the correct clssified inst
 	    sum += conf()[i][i];
 	}
-	accuracy() = sum / nTest;
+	accuracy() = (double)sum / nTest;
 #ifdef __CLASSIFICATION_DEBUG__
 	fprintf(stdout, "(D) Accuracy: %g.\n",accuracy());
 #endif
