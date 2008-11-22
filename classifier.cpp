@@ -132,6 +132,20 @@ Classifier::test(void)
 
 	conf()[classify_inst(inst)][inst[ci].value.nom] ++ ;
     }
+
+    // Calculate accuracy:
+    {
+	size_t sum=0;
+	for (size_t i=0;i<nClass;i++) {
+	    // The diagonal is the correct clssified inst
+	    sum += conf()[i][i];
+	}
+	accuracy() = sum / nTest;
+#ifdef __CLASSIFICATION_DEBUG__
+	fprintf(stdout, "(D) Accuracy: %g.\n",accuracy());
+#endif
+    }
+
     // Normalize the conf matrix
     // for each row:
     for( size_t r=0; r<nClass; r++ ) {
