@@ -18,39 +18,30 @@ int main()
     Dataset dataset("test.arff");
 
     NaiveBayesClassifier c(dataset,248);
-    //c.bind_dataset(dataset);
-    //c.class_index() = 248;
-
-    //c.randomize();
-    //c.ran_tt_set();
     c.init_tt_set();
     c.train();
-    cout << "im here..."<<endl;
     c.test();
-
-    /*
-    size_t nInst = dataset.num_of_inst();
-    size_t nAtt = dataset.num_of_att();
-    for (size_t i=0; i<nInst; i++) {
-	for (size_t k=0; k<nAtt; k++) {
-	    if (dataset.get_att_desc(k).get_type() == ATT_TYPE_NOMINAL) {
-		if (dataset[i][k].unknown) {
-		    fprintf(stdout, "?");
-		} else {
-		    fprintf(stdout, "%s", dataset.get_att_desc(k).map(dataset[i][k].value.nom).c_str());
-		}
-		fprintf(stdout, ",");
-	    } else if (dataset.get_att_desc(k).get_type() == ATT_TYPE_NUMERIC) {
-		if (dataset[i][k].unknown) {
-		    fprintf(stdout, "?");
-		} else {
-		    fprintf(stdout, "%g",dataset[i][k].value.num);
-		}
-		fprintf(stdout, ",");
+    size_t nAtt = c.dataset().num_of_att();
+    for (size_t i=0;i<nAtt;i++) {
+	printf("%d -th attribute:",i);
+	if (i==c.class_index()) continue;
+	const Distribution * distr = c.attDistrOnClass().table()[1][i];
+	if (c.dataset().get_att_desc(i).get_type() == ATT_TYPE_NOMINAL) {
+	    for (size_t j=0;j<c.dataset().get_att_desc(i).possible_value_vector().size();j++) {
+		printf("%g ",static_cast<const NominalDistribution*>(distr)->pmf().at(j));
 	    }
+	    printf("\n");
 	}
-	fprintf(stdout, "\n");
+	else if (c.dataset().get_att_desc(i).get_type() == ATT_TYPE_NUMERIC) {
+	    printf("mean: %g, var: %g, (invalid: %d)\n",
+		    static_cast<const NormalDistribution*>(distr)->mean(),
+		    static_cast<const NormalDistribution*>(distr)->var(),
+		    static_cast<const NormalDistribution*>(distr)->invalid());
+	}
     }
-    */
+
+    
+
+
     return 0;
 }
