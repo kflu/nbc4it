@@ -153,40 +153,55 @@ Classifier::test(void)
     // print_performance();
 }
 
-
 NominalType 
-StatisticsClassifier::classify_inst(const Instance& inst, double* maxProb)
+StatisticsClassifier::
+classify_inst(const Instance& inst, double* maxProb) const 
 {
-    size_t nClass = 
+    const size_t nClass = 
 	dataset().get_att_desc( class_index() ).possible_value_vector().size();
     size_t curMaxClassIndex = 0;
     double curMaxProb = -1;
-    for( size_t i=0;i<nClass;i++ ) {
-	double tmp = a_posteriori(i, inst);
-	if ( tmp > curMaxProb ) {
-	    curMaxProb = tmp;
-	    curMaxClassIndex = i;
+    double tmp=0;
+    if (maxProb) {
+	for( size_t i=0;i<nClass;i++ ) {
+	    tmp = a_posteriori(i, inst);
+	    if ( tmp > curMaxProb ) {
+		curMaxProb = tmp;
+		curMaxClassIndex = i;
+	    }
+	}
+	*maxProb = curMaxProb;
+    }
+    else {
+	for( size_t i=0;i<nClass;i++ ) {
+	    tmp = likelihood(i, inst);
+	    if ( tmp > curMaxProb ) {
+		curMaxProb = tmp;
+		curMaxClassIndex = i;
+	    }
 	}
     }
-
-    if (maxProb)
-	*maxProb = curMaxProb;
-
     return curMaxClassIndex;
+}
+
+inline
+double
+StatisticsClassifier::
+likelihood(const NominalType c, const Instance& inst) const 
+{
+    return prob_inst_on_class(inst,c) * pClass()[c];
 }
 
 double 
 StatisticsClassifier::
-a_posteriori(const NominalType c, const Instance& inst)
+a_posteriori(const NominalType c, const Instance& inst) const 
 {
     const size_t nClass = get_class_desc().possible_value_vector().size();
-    double pInstOnC = prob_inst_on_class(inst, c);
-    double pC = pClass()[c];
     double pInst = 0;
     for (size_t i=0;i<nClass;i++) {
 	pInst += prob_inst_on_class(inst,i) * pClass()[i];
     }
-    return pInstOnC * pC / pInst;
+    return likelihood(c,inst) / pInst;
 }
 
 double
