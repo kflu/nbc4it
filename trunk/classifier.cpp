@@ -264,7 +264,7 @@ est_class_prob(const size_t c_index) const
 	fprintf(stderr, "(W)   ... Probability set to 0.\n");
 	return 0.0;
     }
-    return sum/nTrain;
+    return sum/(double)nTrain;
 }
 
 double 
@@ -293,6 +293,9 @@ train(void)
     pClass().clear();
     size_t nClass = get_class_desc().possible_value_vector().size();
     for ( size_t i=0;i<nClass;i++ ) {
+#ifdef __CLASSIFICATION_DEBUG__
+	cout<<"pClass "<<i<<":"<<est_class_prob(i)<<endl;
+#endif
 	pClass().push_back( est_class_prob(i) );
     }
 }
@@ -364,7 +367,7 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	     * been already set to 0. Set the corresponding conditional probability 
 	     * to invalid to indicate that when evaluating this conditional 
 	     * probability, 0 should be returned. */
-	    ((NormalDistribution*)pDistr)->invalid() = 0;
+	    ((NormalDistribution*)pDistr)->invalid() = 1;
 	    return;
 	}
 	((NormalDistribution*)pDistr)->mean() = sum/nInstBelongsToThisClass;
@@ -394,7 +397,8 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	     * flags to 1. */
 	    zero_issue = 1;
 	}
-	for (size_t i=0;i<nClass;i++) {
+	size_t nPos = ds.get_att_desc(att_i).possible_value_vector().size();
+	for (size_t i=0;i<nPos;i++) {
 	    if ( ((NominalDistribution*)pDistr)->pmf()[i] != 0 )
 		continue;
 	    zero_issue = 1;
@@ -418,12 +422,11 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	 *
 	 * For example, 0/3, 3/3 will become 1/5, 4/5; 
 	 * 0/3, 1/3, 2/3 will become 1/6, 2/6, 3/6. */
-	size_t nPos = ds.get_att_desc(att_i).possible_value_vector().size();
-	for (size_t i=0;i<nClass;i++) {
+	for (size_t i=0;i<nPos;i++) {
 	    if (!zero_issue) {
-		((NominalDistribution*)pDistr)->pmf()[i] /= sum;
+		((NominalDistribution*)pDistr)->pmf()[i] /= (double)sum;
 	    } else {
-		((NominalDistribution*)pDistr)->pmf()[i] = (((NominalDistribution*)pDistr)->pmf()[i] + 1) / (sum + nPos);
+		((NominalDistribution*)pDistr)->pmf()[i] = (double)(((NominalDistribution*)pDistr)->pmf()[i] + 1) / (sum + nPos);
 	    }
 	}
 	return;
@@ -521,5 +524,5 @@ NormalDistribution::
 prob(const ValueType value) const
 {
     if (invalid()) return .0;
-    return (1/sqrt(2*PI*var())) * exp( - pow(value.num-mean(),2) / (2*var()) );
+    return (1.0/sqrt(2*PI*var())) * exp( - pow(value.num-mean(),2.0) / (2.0*var()) );
 }
