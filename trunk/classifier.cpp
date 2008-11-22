@@ -108,7 +108,7 @@ Classifier::test(void)
 
     // Init. the Confusion Mat.
     {
-	vector<double> tmp(nClass,.0);
+	vector<size_t> tmp(nClass,.0);
 	for( size_t i=0;i<nClass;i++ ) {
 	    conf().push_back(tmp);
 	}
@@ -146,23 +146,17 @@ Classifier::test(void)
 	fprintf(stdout, "(D) Correct: %d, Total: %d\n",sum,nTest);
 #endif
     }
+    
+    // Calculate trust:
 
-    // Normalize the conf matrix
     // for each row:
     for( size_t r=0; r<nClass; r++ ) {
-	// get row sum
-	size_t sum = 0;
-	for( size_t c=0; c<nClass; c++ ) {
-	    sum += conf()[r][c];
-	}
-	// Normalize each column.
-	for( size_t c=0; c<nClass; c++ ) {
-	    conf()[r][c] /= sum;
-	    if (c==r) {
-		// this element is trust.
-		trust()[c] = conf()[r][c];
-	    }
-	}
+        // get row sum
+        size_t sum = 0;
+        for( size_t c=0; c<nClass; c++ ) {
+            sum += conf()[r][c];
+        }
+	trust()[r] = conf()[r][r] / (double)sum;
     }
 #ifdef __CLASSIFICATION_DEBUG__
     show_conf(conf());
@@ -177,7 +171,7 @@ void show_conf(const ConfMatr& conf)
     size_t nCol = conf[0].size();
     for ( size_t i=0;i<nRow;i++ ) {
 	for ( size_t j=0;j<nCol;j++ ) {
-	    fprintf(stdout, "(I)   %.5f ", conf[i][j]);
+	    fprintf(stdout, "%7d ", conf[i][j]);
 	}
 	fprintf(stdout, "\n");
     }
