@@ -178,9 +178,9 @@ show_conf(const ConfMatr& conf) const
     for ( size_t i=0;i<nRow;i++ ) {
 	fprintf(stdout, "(I) ... ");
 	for ( size_t j=0;j<nCol;j++ ) {
-	    fprintf(stdout, "%7d ", conf[i][j]);
+	    fprintf(stdout, "%7d", conf[i][j]);
 	}
-	fprintf(stdout, "%s \n", get_class_desc().map(i).c_str());
+	fprintf(stdout, " ... %s \n", get_class_desc().map(i).c_str());
     }
 }
 
