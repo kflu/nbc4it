@@ -380,8 +380,15 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	    ((NormalDistribution*)pDistr)->invalid() = 1;
 	    return;
 	}
-	((NormalDistribution*)pDistr)->mean() = sum/nInstBelongsToThisClass;
-	((NormalDistribution*)pDistr)->var() = sq_sum/(nInstBelongsToThisClass-1);
+	double meantmp = sum/nInstBelongsToThisClass;
+	((NormalDistribution*)pDistr)->mean() = meantmp;
+	((NormalDistribution*)pDistr)->var() = 
+	    1.0 / (nInstBelongsToThisClass-1) *
+	    (
+	      sq_sum 
+	      + nInstBelongsToThisClass * pow(meantmp,2.0)
+	      - 2 * meantmp * sum
+	    );
 	return;
     }
     else if (desc.get_type() == ATT_TYPE_NOMINAL) {
