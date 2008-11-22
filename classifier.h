@@ -29,7 +29,7 @@
                = Num{true_c = j;est_c = i} / Num{est_c = i} 
    \endverbatim
  */
-typedef vector< vector<double> > ConfMatr;
+typedef vector< vector<size_t> > ConfMatr;
 
 /**
  * Random seed type.
