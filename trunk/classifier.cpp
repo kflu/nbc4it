@@ -156,7 +156,11 @@ Classifier::test(void)
         for( size_t c=0; c<nClass; c++ ) {
             sum += conf()[r][c];
         }
-	trust()[r] = conf()[r][r] / (double)sum;
+	if (conf()[r][r]==0 && sum==0) {
+	    trust()[r] = 0;
+	} else {
+	    trust()[r] = conf()[r][r] / (double)sum;
+	}
     }
 #ifdef __CLASSIFICATION_DEBUG__
     show_conf(conf());
@@ -164,25 +168,31 @@ Classifier::test(void)
 #endif
 }
 
-void show_conf(const ConfMatr& conf)
+void 
+Classifier::
+show_conf(const ConfMatr& conf) const
 {
     fprintf(stdout, "(I) Confusion Matrix:\n");
     size_t nRow = conf.size();
     size_t nCol = conf[0].size();
     for ( size_t i=0;i<nRow;i++ ) {
+	fprintf(stdout, "(I) ... ");
 	for ( size_t j=0;j<nCol;j++ ) {
 	    fprintf(stdout, "%7d ", conf[i][j]);
 	}
-	fprintf(stdout, "\n");
+	fprintf(stdout, "%s \n", get_class_desc().map(i).c_str());
     }
 }
 
-void show_trust(const vector<double>& trust)
+void 
+Classifier::
+show_trust(const vector<double>& trust) const
 {
     fprintf(stdout, "(I) The trust on class label:\n");
     size_t n = trust.size();
     for (size_t i=0;i<n;i++) {
-	fprintf(stdout, "(I) ... %g\n", trust[i]);
+	fprintf(stdout, "(I) ... %.6f: %s(%d)\n", 
+		trust[i], get_class_desc().map(i).c_str(), i);
     }
 }
 
@@ -333,7 +343,7 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
     const Dataset& ds = dataset();
     const size_t nInst = ds.num_of_inst();
     const size_t ci = class_index();
-    const size_t nClass = ds.get_att_desc(ci).possible_value_vector().size();
+    //const size_t nClass = ds.get_att_desc(ci).possible_value_vector().size();
 
     // att_i is not the class attribute:
     if (att_i == ci) {
@@ -376,8 +386,9 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
     }
     else if (desc.get_type() == ATT_TYPE_NOMINAL) {
 	//pDistr = new NominalDistribution;
-	((NominalDistribution*)pDistr)->pmf().resize(nClass,0.0);
-	size_t sum = 0;
+	size_t nPos = ds.get_att_desc(att_i).possible_value_vector().size();
+	((NominalDistribution*)pDistr)->pmf().resize(nPos,0.0);
+	size_t sum = 0; // total num of inst belongs to class_j
 	for (size_t i=0;i<nInst;i++) {
 	    const Attribute& klass = ds[i][ci];
 	    const Attribute& att = ds[i][att_i];
@@ -397,7 +408,6 @@ calc_distr_for_att_on_class(size_t att_i, size_t class_j)
 	     * flags to 1. */
 	    zero_issue = 1;
 	}
-	size_t nPos = ds.get_att_desc(att_i).possible_value_vector().size();
 	for (size_t i=0;i<nPos;i++) {
 	    if ( ((NominalDistribution*)pDistr)->pmf()[i] != 0 )
 		continue;
@@ -519,10 +529,20 @@ AttDistrOnClass::
     return;
 }
 
+bool float_eq(const double v1, const double v2)
+{
+    if (fabs(v1-v2) <= DBL_MIN) return 1;
+    return 0;
+}
+
 const double 
 NormalDistribution::
 prob(const ValueType value) const
 {
     if (invalid()) return .0;
+    if ( float_eq(var(),0) ) {
+	if (float_eq(value.num,mean())) return 1-DBL_MIN;
+	return DBL_MIN;
+    }
     return (1.0/sqrt(2*PI*var())) * exp( - pow(value.num-mean(),2.0) / (2.0*var()) );
 }

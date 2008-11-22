@@ -12,6 +12,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
+#include <cfloat>
 #include <stdint.h>
 #include <math.h>
 #include <vector>

@@ -156,11 +156,9 @@ class Classifier {
 	 */
 	void test(void);
 
-	/** Print the performance statistics. 
-	 * 
-	 * Not implemented yet.*/
-	void print_performance(void);
-	
+	/** Print the performance statistics. */
+	void show_conf(const ConfMatr& conf) const;
+	void show_trust(const vector<double>& trust) const;
 
 	Classifier( const Dataset& dataset,
 	    const size_t classIndex,
@@ -169,8 +167,6 @@ class Classifier {
 	    //const double tt_ratio = 2.0 );
 };
 
-void show_conf(const ConfMatr& conf);
-void show_trust(const vector<double>& trust);
 
 /** 
  * Classifier based on Maximum A Posteriori criteria.
@@ -251,6 +247,7 @@ class NormalDistribution : public Distribution {
 	const NumericType& var() const {return _var;}
 	
 	const double prob(const ValueType value) const;
+	NormalDistribution() {invalid()=0;}
 };
 
 /**
