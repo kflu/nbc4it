@@ -169,6 +169,9 @@ class Classifier {
 	    //const double tt_ratio = 2.0 );
 };
 
+void show_conf(const ConfMatr& conf);
+void show_trust(const vector<double>& trust);
+
 /** 
  * Classifier based on Maximum A Posteriori criteria.
  */

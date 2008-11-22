@@ -164,8 +164,32 @@ Classifier::test(void)
 	    }
 	}
     }
+#ifdef __CLASSIFICATION_DEBUG__
+    show_conf(conf());
+    show_trust(trust());
+#endif
+}
 
-    // print_performance();
+void show_conf(const ConfMatr& conf)
+{
+    fprintf(stdout, "(I) Confusion Matrix:\n");
+    size_t nRow = conf.size();
+    size_t nCol = conf[0].size();
+    for ( size_t i=0;i<nRow;i++ ) {
+	for ( size_t j=0;j<nCol;j++ ) {
+	    fprintf(stdout, "(I)   %.5f ", conf[i][j]);
+	}
+	fprintf(stdout, "\n");
+    }
+}
+
+void show_trust(const vector<double>& trust)
+{
+    fprintf(stdout, "(I) The trust on class label:\n");
+    size_t n = trust.size();
+    for (size_t i=0;i<n;i++) {
+	fprintf(stdout, "(I) ... %g\n", trust[i]);
+    }
 }
 
 NominalType 
