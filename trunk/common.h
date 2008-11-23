@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <math.h>
 #include <vector>
+#include <list>
+#include <algorithm>
 #include <string>
 #include <iostream>
 
