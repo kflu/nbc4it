@@ -45,6 +45,7 @@ Classifier::init_tt_set(void)
 #ifdef ______XXXXXXXXXXXXX__________
 /**
  * \deprecated 
+ *
  * This member is deprecated. It belongs to cross
  * validation, which should be a separated class
  */
