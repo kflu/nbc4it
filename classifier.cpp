@@ -253,7 +253,7 @@ train(void)
 	pClass().push_back( est_class_prob(i) );
     }
 #ifdef __CLASSIFICATION_DEBUG__
-    fprintf(stdout, "(I) Priori probability of class:");
+    fprintf(stdout, "(I) Priori probability of class:\n");
     for (size_t i=0;i<nClass;i++) {
 	fprintf(stdout, "(I) ... %.7f (%s)\n",
 		pClass().at(i), get_class_desc().map(i).c_str() );

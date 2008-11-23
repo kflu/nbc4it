@@ -109,8 +109,8 @@ xvalidate()
     double ave_acc = 0.0; 
     vector<double> sum_trust(nClass,0.0); // sum of trust.
     vector<double> ave_trust(nClass,0.0);
-    ConfMatr sum_conf(nClass, vector<size_t>(nClass,0)); // sum of conf mat.
-    ConfMatr ave_conf(nClass, vector<size_t>(nClass,0));
+    vector< vector<double> > sum_conf(nClass, vector<size_t>(nClass,0)); // sum of conf mat.
+    vector< vector<double> > ave_conf(nClass, vector<size_t>(nClass,0));
 
     for (size_t foldi = 0; foldi<fold(); foldi++) {
 	c.test_set().clear();
