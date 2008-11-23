@@ -117,7 +117,10 @@ class Classifier {
 
 	bool& useAllAtt(void) {return _useAllAtt;}
 	const bool& useAllAtt(void) const {return _useAllAtt;}
-	/** \sa _onlyTheseAtt */
+	/** Get a reference to member _onlyTheseAtt.
+	 *
+	 * When setting this member, don't forget to turn off _useAllAtt
+	 * \sa _onlyTheseAtt, useAllAtt() */
 	vector<size_t> & only_these_att(void) {return _onlyTheseAtt;};
 	const vector<size_t> & only_these_att(void) const {return _onlyTheseAtt;};
 
@@ -128,14 +131,12 @@ class Classifier {
 	/** Clear the performance parameters. */
 	void perf_clear(void) {_accuracy=0;_trust.clear();_conf.clear();}
 
-	/**
-	 * Randomize the training and testing set.
-	 */
+	/** \deprecated
+	 *
+	 * Randomize the training and testing set. */
 	void ran_tt_set(void);
 
 	/** 
-	 * \deprecated
-	 *
 	 * Initialize training / testing set to the whole dateset.
 	 */
 	void init_tt_set(void);
