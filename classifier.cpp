@@ -8,6 +8,7 @@
 
 #define PI 3.1415926
 #define __CLASSIFICATION_DEBUG__
+//#define __CLASSIFICATION_DEBUG_VERBOSE__
 
 Classifier::Classifier( const Dataset& dataset,
 	    const size_t classIndex,
@@ -42,62 +43,6 @@ Classifier::init_tt_set(void)
     return;
 }
 
-#ifdef ______XXXXXXXXXXXXX__________
-/**
- * \deprecated 
- *
- * This member is deprecated. It belongs to cross
- * validation, which should be a separated class
- */
-void 
-Classifier::ran_tt_set(void)
-{
-    fprintf(stdout, "(I) Randomizing T/T dataset...\n");
-
-    train_set().clear();
-    test_set().clear();
-
-    size_t nInst = dataset().num_of_inst();
-
-    size_t nTrain = nInst * tt_ratio();
-    size_t nTest = nInst - nTrain;
-
-    vector<short> used(nInst,0);
-    size_t tmp=0;
-    /* gen. training set */
-    for (size_t i=0;i<nTrain;i++ ) {
-	while (1) {
-	    tmp = rand() % nTrain;
-	    if (!used[tmp]) {
-		train_set().push_back(tmp);
-		used[tmp]++;
-		break;
-	    }
-	}
-    }
-    // Sort into increasing order.
-    sort( train_set().begin(), train_set().end() );
-
-    /* the rest is testing set */
-    for (size_t i=0;i<nInst;i++) {
-	if (!used[i]) {
-	    test_set().push_back(i);
-	    used[i]++;
-	}
-    }
-
-#ifdef __CLASSIFICATION_DEBUG__
-    /* verify that every inst is used in either training
-     * or testing set and is only used once. */
-    assert(nTest==test_set().size());
-    assert(nTrain==train_set().size());
-    for (size_t i=0;i<nInst;i++) {
-	assert(used[i]==1);
-    }
-#endif
-}
-#endif
-
 void 
 Classifier::test(void)
 {
@@ -124,8 +69,10 @@ Classifier::test(void)
     // Begin testing
     for( size_t i=0;i<nTest;i++ ) {
 #ifdef __CLASSIFICATION_DEBUG__
+#ifdef   __CLASSIFICATION_DEBUG_VERBOSE__
 	fprintf(stdout, "(D) Testing %d-th instance (total %d).\n",
 		i+1,nTest);
+#endif
 #endif
 	const Instance& inst = dataset()[test_set()[i]];
 	const size_t ci = class_index();
@@ -303,11 +250,15 @@ train(void)
     pClass().clear();
     size_t nClass = get_class_desc().possible_value_vector().size();
     for ( size_t i=0;i<nClass;i++ ) {
-#ifdef __CLASSIFICATION_DEBUG__
-	cout<<"pClass "<<i<<":"<<est_class_prob(i)<<endl;
-#endif
 	pClass().push_back( est_class_prob(i) );
     }
+#ifdef __CLASSIFICATION_DEBUG__
+    fprintf(stdout, "(I) Priori probability of class:");
+    for (size_t i=0;i<nClass;i++) {
+	fprintf(stdout, "(I) ... %.7f (%s)\n",
+		pClass().at(i), get_class_desc().map(i).c_str() );
+    }
+#endif
 }
 
 void
@@ -326,7 +277,9 @@ train(void)
     size_t nClass = get_class_desc().possible_value_vector().size();
     for ( size_t i=0; i<nAtt; i++ ) {
 #ifdef __CLASSIFICATION_DEBUG__
+#ifdef   __CLASSIFICATION_DEBUG_VERBOSE__
 	fprintf(stdout, "(D) NaiveBayesClassifier: training on %d-th attribute (total: %d).\n", i+1, nAtt);
+#endif
 #endif
 	if ( i == ci ) continue;
 	for ( size_t j=0; j<nClass; j++ ) {
