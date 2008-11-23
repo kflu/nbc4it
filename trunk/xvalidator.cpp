@@ -6,6 +6,8 @@
 #include "common.h"
 #include "xvalidator.h"
 
+#define __XVALIDATOR_DEBUG__
+
 Xvalidator::
 Xvalidator(Classifier* c, const size_t f, RSeed s)
 {
