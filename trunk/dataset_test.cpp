@@ -46,10 +46,7 @@ int main()
 
     // Cross validation:
     // ----------------------
-    Xvalidator x(c);
-    x.fold() = 3;
-    x.xvalidate();
-
+    Xvalidator x(&c);
     
 
 
