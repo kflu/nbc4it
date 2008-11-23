@@ -115,8 +115,11 @@ class Classifier {
 	size_t & class_index(void) {return _classIndex;}
 	const size_t & class_index(void) const {return _classIndex;}
 
+	bool& useAllAtt(void) {return _useAllAtt;}
+	const bool& useAllAtt(void) const {return _useAllAtt;}
 	/** \sa _onlyTheseAtt */
 	vector<size_t> & only_these_att(void) {return _onlyTheseAtt;};
+	const vector<size_t> & only_these_att(void) const {return _onlyTheseAtt;};
 
 	double& accuracy(void) {return _accuracy;}
 	vector<double>& trust(void) {return _trust;}
@@ -131,6 +134,8 @@ class Classifier {
 	void ran_tt_set(void);
 
 	/** 
+	 * \deprecated
+	 *
 	 * Initialize training / testing set to the whole dateset.
 	 */
 	void init_tt_set(void);
