@@ -22,7 +22,8 @@ Classifier::Classifier( const Dataset& dataset,
     _onlyTheseAtt.clear();
     perf_clear();
 
-    empty_tt_set();
+    // empty_tt_set();
+    init_tt_set();
 
     //ran_tt_set();
 }
@@ -468,10 +469,20 @@ prob_inst_on_class( const Instance& inst, const NominalType c ) const
     const size_t nAtt = dataset().num_of_att();
     const size_t ci = class_index();
     double product = 1;
-    for (size_t i=0;i<nAtt;i++) {
-	if (ci == i) continue;
-	if (inst[i].unknown) continue;
-	product *= att_prob_on_class(inst[i].value, i, c);
+    if ( useAllAtt() ) {
+	for (size_t i=0;i<nAtt;i++) {
+	    if (ci == i) continue;
+	    if (inst[i].unknown) continue;
+	    product *= att_prob_on_class(inst[i].value, i, c);
+	}
+    }
+    else {
+	for (size_t i=0;i<only_these_att().size();i++) {
+	    size_t ii = only_these_att().at(i);
+	    if (ci == ii) continue;
+	    if (inst[ii].unknown) continue;
+	    product *= att_prob_on_class(inst[ii].value, ii, c);
+	}
     }
     return product;
 }
