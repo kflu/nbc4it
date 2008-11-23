@@ -38,6 +38,12 @@ typedef vector< vector<size_t> > ConfMatr;
  */
 typedef unsigned int	RSeed;
 
+class Classifier;
+
+/** Print the Confusion Matrix. */
+void show_conf(const Classifier& c,const ConfMatr& conf);
+/** Print the trust values. */
+void show_trust(const Classifier& c,const vector<double>& trust);
 
 /**
  * Basic classifier class.
@@ -126,7 +132,9 @@ class Classifier {
 
 	double& accuracy(void) {return _accuracy;}
 	vector<double>& trust(void) {return _trust;}
+	const vector<double>& trust(void) const {return _trust;}
 	ConfMatr& conf(void) {return _conf;}
+	const ConfMatr& conf(void) const {return _conf;}
 
 	/** Clear the performance parameters. */
 	void perf_clear(void) {_accuracy=0;_trust.clear();_conf.clear();}
@@ -163,8 +171,8 @@ class Classifier {
 	void test(void);
 
 	/** Print the performance statistics. */
-	void show_conf(const ConfMatr& conf) const;
-	void show_trust(const vector<double>& trust) const;
+	void show_conf() const {::show_conf(*this,conf());}
+	void show_trust() const {::show_trust(*this,trust());}
 
 	Classifier( const Dataset& dataset,
 	    const size_t classIndex,
@@ -172,7 +180,6 @@ class Classifier {
 	    //const RSeed seed = 0,
 	    //const double tt_ratio = 2.0 );
 };
-
 
 /** 
  * Classifier based on Maximum A Posteriori criteria.

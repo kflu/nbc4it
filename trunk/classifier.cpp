@@ -165,14 +165,13 @@ Classifier::test(void)
 	}
     }
 #ifdef __CLASSIFICATION_DEBUG__
-    show_conf(conf());
-    show_trust(trust());
+    show_conf();
+    show_trust();
 #endif
 }
 
 void 
-Classifier::
-show_conf(const ConfMatr& conf) const
+show_conf(const Classifier& c, const ConfMatr& conf)
 {
     fprintf(stdout, "(I) Confusion Matrix:\n");
     size_t nRow = conf.size();
@@ -182,19 +181,18 @@ show_conf(const ConfMatr& conf) const
 	for ( size_t j=0;j<nCol;j++ ) {
 	    fprintf(stdout, "%7d", conf[i][j]);
 	}
-	fprintf(stdout, " ... %s \n", get_class_desc().map(i).c_str());
+	fprintf(stdout, " ... %s \n", c.get_class_desc().map(i).c_str());
     }
 }
 
 void 
-Classifier::
-show_trust(const vector<double>& trust) const
+show_trust(const Classifier& c,const vector<double>& trust)
 {
     fprintf(stdout, "(I) The trust on class label:\n");
     size_t n = trust.size();
     for (size_t i=0;i<n;i++) {
 	fprintf(stdout, "(I) ... %.6f: %s(%d)\n", 
-		trust[i], get_class_desc().map(i).c_str(), i);
+		trust[i], c.get_class_desc().map(i).c_str(), i);
     }
 }
 
