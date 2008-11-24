@@ -46,15 +46,20 @@ Xvalidator::randomize(void)
 	unused.at(i) = i;
     }
 
+    // Init. and randomize the ran vector.
     vector<size_t> ran(nInst,0);
-    size_t tmp = 0;
-    // randomize the ran vector
     for (size_t i=0;i<nInst;i++) {
-	tmp = rand() % (nInst-i);
-	ran.at(i) = tmp;
-	// remove the tmp-th element from unused:
-	unused.erase(unused.begin()+tmp);
+	ran.at(i) = i;
     }
+    random_shuffle( ran.begin(), ran.end() );
+    // // randomize the ran vector
+    // size_t tmp = 0;
+    // for (size_t i=0;i<nInst;i++) {
+    //     tmp = rand() % (nInst-i);
+    //     ran.at(i) = tmp;
+    //     // remove the tmp-th element from unused:
+    //     unused.erase(unused.begin()+tmp);
+    // }
 
     { // Assign ran vectors to the randomIndecs
 	size_t i = 0;
