@@ -47,7 +47,7 @@ int main()
     // Cross validation:
     // ----------------------
     Xvalidator x(&c);
-    x.set_fold(5);
+    x.set_fold(8);
     x.xvalidate();
 
     return 0;
