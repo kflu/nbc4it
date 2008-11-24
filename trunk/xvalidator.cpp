@@ -119,7 +119,7 @@ xvalidate()
 
     for (size_t foldi = 0; foldi<fold(); foldi++) {
 	fprintf(stdout, "(I) Cross validating on progress: %d of %d...\n",
-		foldi, fold());
+		foldi+1, fold());
 	c.test_set().clear();
 	c.train_set().clear();
 	// assign test set.
