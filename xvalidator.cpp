@@ -155,3 +155,10 @@ xvalidate()
 #endif
 }
 
+void 
+Xvalidator::
+set_fold(const size_t f)
+{
+    _fold=f;
+    init_randomIndex();
+}
