@@ -1,14 +1,15 @@
 CC = g++
+EXEC = nb4it
 
-Main: *.cpp
+Main: *.cpp *.h
 	$(CC) -Wall -c -ggdb *.cpp
-	$(CC) *.o
+	$(CC) -o $(EXEC) *.o
 
 clean:
 	rm -f *.o
 	rm -f *~
 	rm -fr doc/
-	rm -f a.out
+	rm -f $(EXEC)
 
 doc: *.cpp
 	doxygen Doxyfile

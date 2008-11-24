@@ -13,13 +13,20 @@
 #include <cassert>
 #include <cstring>
 #include <cfloat>
-#include <stdint.h>
+
 #include <math.h>
 #include <vector>
 #include <list>
 #include <algorithm>
 #include <string>
 #include <iostream>
+
+#ifdef linux
+  #include <stdint.h>
+#elif defined(_WIN32)
+  // Since MSVC++ doesn't have this standard lib header :)
+  #include "stdint.h"
+#endif
 
 // Only used in network programming, when processing packet headers.
 // #include <netinet/in.h>
