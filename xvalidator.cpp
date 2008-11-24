@@ -12,7 +12,7 @@ Xvalidator::
 Xvalidator(Classifier* c, const size_t f, RSeed s)
 {
     seed() = s;
-    fold() = f;
+    set_fold(f);
     _binded_classifier = c;
     init_randomIndex();
 }
