@@ -381,4 +381,32 @@ class NaiveBayesClassifier : public StatisticsClassifier {
 	}
 };
 
+/** 
+ * The class definition of the Naive Bayes Classifier with Kernel Estimation.
+ *
+ * The only difference to the naive Bayes classifier is the different implementation 
+ * of prob_inst_on_class() method, which uses kernel estimation in estimating the 
+ * conditional probability.
+ *
+ * NOT IMPLEMENTED YET.
+ */
+class NaiveBayesClassifierKernel : public NaiveBayesClassifier {
+    public:
+	/** Estimate the probability of a certain observation (instance) 
+	 * conditioned on a class label.
+	 *
+	 * It's different from basic naive bayes in that it uses kernel 
+	 * estimation.
+	 *
+	 * NOT IMPLEMENTED YET.
+	 */
+	const double prob_inst_on_class( const Instance& inst, 
+		const NominalType c ) const
+	{
+	    fprintf(stderr, "(E) Naive Bayes Classifier with Kernel Estimation "
+		    "is not yet implemented.\n");
+	    abort();
+	}
+};
+
 #endif
