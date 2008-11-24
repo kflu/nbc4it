@@ -29,7 +29,12 @@ class Xvalidator {
 	const RSeed& seed() const {return _seed;}
 	Classifier & classifier() const {return *_binded_classifier;}
 	const size_t & fold() const {return _fold;}
-	void set_fold(const size_t f) {_fold = f;}
+	/** Re assign a fold.
+	 *
+	 * This will call init_randomIndex() to re-init. the vector sizes.
+	 *
+	 * \sa init_randomIndex() */
+	void set_fold(const size_t f);
 
 	Xvalidator(Classifier* c, const size_t fold = 3, RSeed seed=0);
 
@@ -37,6 +42,7 @@ class Xvalidator {
 	const vector< vector<size_t> >& randomIndecs() const {return _randomIndecs;}
 	/** Initialize _randomIndecs.
 	 *
+	 * Initialize the size of random indecs vectors. 
 	 * It must have _fold vectors, each stores a portion (nInst/_fold, 
 	 * except the last one.) of instance indecs, unique from the others.
 	 *

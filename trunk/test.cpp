@@ -48,6 +48,7 @@ int main()
     // ----------------------
     Xvalidator x(&c);
     x.xvalidate();
+    x.set_fold(5);
     
 
 
