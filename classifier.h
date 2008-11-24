@@ -142,11 +142,6 @@ class Classifier {
 	/** Clear the performance parameters. */
 	void perf_clear(void) {_accuracy=0;_trust.clear();_conf.clear();}
 
-	/** \deprecated
-	 *
-	 * Randomize the training and testing set. */
-	void ran_tt_set(void);
-
 	/** 
 	 * Initialize training / testing set to the whole dateset.
 	 */
