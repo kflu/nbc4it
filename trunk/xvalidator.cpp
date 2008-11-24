@@ -113,6 +113,8 @@ xvalidate()
     vector< vector<double> > ave_conf(nClass, vector<double>(nClass,0));
 
     for (size_t foldi = 0; foldi<fold(); foldi++) {
+	fprintf(stdout, "(I) Cross validating on progress: %d of %d...\n",
+		foldi, fold());
 	c.test_set().clear();
 	c.train_set().clear();
 	// assign test set.
