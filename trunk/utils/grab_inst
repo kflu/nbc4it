@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# This script will grab out only the instance lines out of an arff file, 
+# and print the result to the stdout.
+
+cat $1 | grep -v '@' | grep -v '^ *$'
