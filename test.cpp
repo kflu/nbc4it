@@ -23,8 +23,8 @@ int main()
 
 #ifdef __ONLY_USE_THESE_ATT__
     /* Only use the attributes which are proved to be more important. */
-     size_t use_these[] = {1};
-    // size_t use_these[] = {1,60, 95, 96, 86, 162, 45, 180, 83, 113, 59};
+    // size_t use_these[] = {1};
+     size_t use_these[] = {1,60, 95, 96, 86, 162, 45, 180, 83, 113, 59};
     // size_t use_these[] = {60, 95, 96, 86, 162, 45, 180, 83, 113, 59};
     c.only_these_att().assign(use_these, use_these + sizeof(use_these)/sizeof(size_t));
     c.useAllAtt() = 0;
