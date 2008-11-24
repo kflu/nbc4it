@@ -11,9 +11,9 @@
 Xvalidator::
 Xvalidator(Classifier* c, const size_t f, RSeed s)
 {
+    _binded_classifier = c;
     seed() = s;
     set_fold(f);
-    _binded_classifier = c;
     init_randomIndex();
 }
 
