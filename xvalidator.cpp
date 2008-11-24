@@ -39,7 +39,7 @@ init_randomIndex()
 void 
 Xvalidator::randomize(void) 
 {
-    fprintf(stdout, "(I) Randomizing the instances...");
+    fprintf(stdout, "(I) Randomizing the instances...\n");
     const size_t nInst = classifier().dataset().num_of_inst();
     vector<size_t> unused(nInst);
     for (size_t i=0;i<nInst;i++) {
