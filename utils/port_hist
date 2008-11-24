@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# This script takes a class label and an arff file as input. 
+# Prints out the server port number histogram of the given class.
+
+# arg1: filename
+# arg2: class label
+
+printf "#. occurance: Port #.:\n";
+cat $1 | grep $2 | grep -v '@' | grep -o '^[0-9][0-9]*' | sort | uniq -c
