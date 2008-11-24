@@ -28,8 +28,8 @@ class Xvalidator {
 	RSeed& seed() {return _seed;}
 	const RSeed& seed() const {return _seed;}
 	Classifier & classifier() const {return *_binded_classifier;}
-	size_t & fold() {return _fold;}
 	const size_t & fold() const {return _fold;}
+	void set_fold(const size_t f) {_fold = f;}
 
 	Xvalidator(Classifier* c, const size_t fold = 3, RSeed seed=0);
 
