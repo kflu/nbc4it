@@ -132,6 +132,22 @@ show_conf(const Classifier& c, const ConfMatr& conf)
     }
 }
 
+/* this is for the average confusion matrix */
+void 
+show_conf(const Classifier& c, const vector< vector<double> >& conf)
+{
+    fprintf(stdout, "(I) Confusion Matrix:\n");
+    size_t nRow = conf.size();
+    size_t nCol = conf[0].size();
+    for ( size_t i=0;i<nRow;i++ ) {
+	fprintf(stdout, "(I) ... ");
+	for ( size_t j=0;j<nCol;j++ ) {
+	    fprintf(stdout, "%7.3f", conf[i][j]);
+	}
+	fprintf(stdout, " ... %s \n", c.get_class_desc().map(i).c_str());
+    }
+}
+
 void 
 show_trust(const Classifier& c,const vector<double>& trust)
 {

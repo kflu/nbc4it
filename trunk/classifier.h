@@ -42,6 +42,9 @@ class Classifier;
 
 /** Print the Confusion Matrix. */
 void show_conf(const Classifier& c,const ConfMatr& conf);
+/** This is for the average confusion matrix. */
+void show_conf(const Classifier& c,const vector< vector<double> >& conf);
+
 /** Print the trust values. */
 void show_trust(const Classifier& c,const vector<double>& trust);
 

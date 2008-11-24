@@ -88,7 +88,7 @@ size_t size_t_sum(const size_t v1, const size_t v2)
 }
 
 static
-vector<size_t>& vector_sum(vector<size_t>& v1, const vector<size_t>& v2)
+vector<double>& vector_sum(vector<double>& v1, const vector<size_t>& v2)
 {
     transform( v1.begin(), v1.end(), v2.begin(), v1.begin(), size_t_sum );
     return v1;
@@ -109,8 +109,8 @@ xvalidate()
     double ave_acc = 0.0; 
     vector<double> sum_trust(nClass,0.0); // sum of trust.
     vector<double> ave_trust(nClass,0.0);
-    vector< vector<double> > sum_conf(nClass, vector<size_t>(nClass,0)); // sum of conf mat.
-    vector< vector<double> > ave_conf(nClass, vector<size_t>(nClass,0));
+    vector< vector<double> > sum_conf(nClass, vector<double>(nClass,0)); // sum of conf mat.
+    vector< vector<double> > ave_conf(nClass, vector<double>(nClass,0));
 
     for (size_t foldi = 0; foldi<fold(); foldi++) {
 	c.test_set().clear();
