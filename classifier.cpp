@@ -232,9 +232,9 @@ est_class_prob(const size_t c_index) const
     }
     /** Handling zero-instance issue (no inst. belongs to this class). */
     if (sum==0) {
-	fprintf(stderr, "(W) No Training instance belongs to class %s (%d).\n",
+	fprintf(stderr, "(W) No Training instance belongs to class %s (%d). "
+		"Probability set to 0.\n",
 		get_class_desc().map(c_index).c_str(), c_index);
-	fprintf(stderr, "(W)   ... Probability set to 0.\n");
 	return 0.0;
     }
     return sum/(double)nTrain;
