@@ -142,7 +142,7 @@ show_conf(const Classifier& c, const vector< vector<double> >& conf)
     for ( size_t i=0;i<nRow;i++ ) {
 	fprintf(stdout, "(I) ... ");
 	for ( size_t j=0;j<nCol;j++ ) {
-	    fprintf(stdout, "%7.3f", conf[i][j]);
+	    fprintf(stdout, "%7.3f  ", conf[i][j]);
 	}
 	fprintf(stdout, " ... %s \n", c.get_class_desc().map(i).c_str());
     }
