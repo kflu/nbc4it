@@ -27,11 +27,7 @@ The internet traffic identification plays an important role in network managemen
 
 This project is based on the work of Moore et al \cite{moore2005itc}. They applied a Naive Bayes estimator to categorize traffic by application. Uniquely, their work capitalized on hand-classified network data, using it as input to a supervised Naive Bayes estimator. It was indicated that with the simplest of Naive Bayes estimator they were able to achieve about 65\% accuracy on per-flow classification and with powerful refinements they could improve this value to between than 95\%.
 
-In this project, a simple internet traffic supervised classification system based on the Naive Bayes method \cite{moore2005itc} is implemented using C++ programming language with C standard library and C++ standard template library (STL). 
-
-A complete, full functioning data set system is implemented. The data set system is able to load ARFF files as the WEKA system does. It is able to take as many as $2^{64}-1$ instances, each consists of as many as $2^{64}-1$ attributes. The data set system is able to take numeric attributes and nominal attributes, and is able to be extended to add other attribute types. 
-
-Manipulating on the data set system, the naive Bayes classification (NBC) system is implemented. It is able to test and train on a given data set, with specified parameters as the testing instances, training instances, etc. The classifiers are written in a way that they can be easily extended to other classifiers. For example, the basic classifier class specifies the interface that a classifier should implement, i.e., classifies an instance. Then statistical classifiers implement this interface by using the maximum a posteriori (MAP) criteria. Then the naive Bayes classifier inherits from the statistical classifier by calculating the a posteriori probability assuming that attributes are independent and normally distributed conditioned on a given class. Similarly, the naive Bayes classifier with kernel estimation (NBCKE) inherits from the basic naive Bayes classifier, only having different method to calculate the conditional probability of an attribute. In this way, future classifiers can be easily implemented based on existing ones. In this project, the basic classifier (abstract), statistical classifier (abstract), and the naive Bayes classifier are implemented. The naive Bayes classifier with kernel estimation is left for future implementing.
+In this project, a simple internet traffic supervised classification system based on the Naive Bayes method \cite{moore2005itc} is implemented using C++ programming language with C standard library and C++ standard template library (STL). A dataset system and a classifier system is implemented. They are built to be modularized and can be easily extended, thanks to the object oriented feature of C++. More details will be presented in Section \ref{sec:imp}.
 
 Additionally, some utility applications are developed to help make preprocessing more efficiently. For example, \verb|grab_inst| grabs all instances lines from an ARFF file, prints them to standard output, throwing out other things. \verb|port_hist| prints the histogram of the port numbers of flows belonging to a certain class in an ARFF file. \verb|reindex| renames the attribute names to increasing integer numbers.
 
@@ -72,10 +68,33 @@ As shown in Figure \ref{fig:flow_chart}, the network flow classification process
 It is worth mentioning that it is not trivial to identify flows from packet header traces. Since for this particular project, the authors of \cite{moore2005itc} provides ARFF flow dataset at \cite{moore_website}, I will not focus on the procedure of obtaining traces and identifying flows from packets. For detailed information, please refer to \cite{moore2005duf}.
 
 \section{The Implementation}
-Once given the algorithm as described in \ref{sec:alg}, the implementation is straightforward. However, to make the implementation general and extendible is not trivial.
+\label{sec:imp}
+Once given the algorithm as described in Section \ref{sec:alg}, the implementation is straightforward. However, to make the implementation general and extendible is not trivial.
+
+First of all, a complete, full functioning data set system is implemented. The data set system is able to load ARFF files as the WEKA system does. It is able to take as many as $2^{64}-1$ instances, each consists of as many as $2^{64}-1$ attributes. The data set system is able to take numeric attributes and nominal attributes, and is able to be extended to add other attribute types. 
+
+Manipulating on the data set system, the naive Bayes classification (NBC) system is implemented. It is able to test and train on a given data set, with specified parameters as the testing instances, training instances, etc. The classifiers are written in a way that they can be easily extended to other classifiers. 
+
+For example, the basic classifier class specifies the interface that a classifier should implement, i.e., classifies an instance. Then statistical classifiers implement this interface by using the maximum a posteriori (MAP) criteria. Then the naive Bayes classifier inherits from the statistical classifier by calculating the a posteriori probability assuming that attributes are independent and normally distributed conditioned on a given class. Similarly, the naive Bayes classifier with kernel estimation (NBCKE) inherits from the basic naive Bayes classifier, only having different method to calculate the conditional probability of an attribute. 
+
+In this way, future classifiers can be easily implemented based on existing ones. In this project, the basic classifier (abstract), statistical classifier (abstract), and the naive Bayes classifier are implemented. The naive Bayes classifier with kernel estimation is left for future implementing.
+
+Besides, the cross validation class is implemented to manipulate the classifier class. It splits the dataset into n folds, using only one fold for testing and the rest for training. This process is iterated for n times over the n folds. And the performance is averaged. The cross validation can be stated as following:
+
+\begin{verbatim}
+randomize seed 
+split dataset into folds
+for each fold i:
+    train dataset - fold i 
+    test fold i
+    store performance i 
+average on performance
+\end{verbatim}
+
+\section{The Result}
+\label{sec:result}
 
 \bibliographystyle{IEEEtran}
-% \bibliography{data_mining.bib}{}
 \bibliography{data_mining}
 
 \end{document}
