@@ -9,6 +9,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{url}
 
 \author{Kefei Lu}
 \title{Project II Report:\\Internet Traffic Classification Using Naive Bayesian Analysis}
@@ -37,7 +38,8 @@ Additionally, some utility applications are developed to help make preprocessing
 For detailed information, please refer to the project reference manual.
 
 \section{The Algorithms: Naive Bayes Method}
-\subsection{The Basic Naive Bayes Method}
+\label{sec:alg}
+%\subsection{The Basic Naive Bayes Method}
 The naive Bayes classifier uses naive Bayes method in classification. It is based on the criteria that one wishes to choose a class label $i$ for a given instance (observation) $\mathbf{o}=\{a_1,a_2,\ldots,a_M\}$, such that the probability $Pr(c_i|\mathbf{o})$ is maximized. In the above equation, $M$ is the number of attributes that the instance has. This criteria is called Maximum A Posteriori (MAP) criteria. Mathematically, it is written as:
 \begin{equation}
     \label{eq:map}
@@ -56,15 +58,25 @@ To estimate the conditional probabilities, the naive Bayes method further assume
 
 Therefore, it is able to evaluate a posteriori probabilities for all class indices. The classification is made on the class with largest a posteriori probability.
 
-\subsection{The Naive Bayes Method With Kernel Estimation}
-
+% \subsection{The Naive Bayes Method With Kernel Estimation}
 \section{The Project Structure}
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=1.1\textwidth]{pic/flow_chart.eps}
+    \caption{The flow chart of network traffic classification.}
+    \label{fig:flow_chart}
+\end{figure} 
+
+As shown in Figure \ref{fig:flow_chart}, the network flow classification process consists of several procedures. A network device records network trace files from the internet. The trace files are then processed during which packet header information are processed and network flows are identified. The flows are recorded in ARFF format to form the desired dataset. The dataset is then feed into the naive Bayes classifier to train the model, then test and evaluate the performance.
+
+It is worth mentioning that it is not trivial to identify flows from packet header traces. Since for this particular project, the authors of \cite{moore2005itc} provides ARFF flow dataset at \cite{moore_website}, I will not focus on the procedure of obtaining traces and identifying flows from packets. For detailed information, please refer to \cite{moore2005duf}.
 
 \section{The Implementation}
+Once given the algorithm as described in \ref{sec:alg}, the implementation is straightforward. However, to make the implementation general and extendible is not trivial.
 
-\bibliographystyle{plain}
+\bibliographystyle{IEEEtran}
 % \bibliography{data_mining.bib}{}
-\bibliography{data_mining_prj2.bib}
+\bibliography{data_mining}
 
 \end{document}
 
