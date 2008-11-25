@@ -135,7 +135,15 @@ It is worth mentioning that it is not trivial to identify flows from packet head
 
 \section{The Implementation}
 \label{sec:imp}
+\begin{figure}[tbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{pic/struct.eps}
+    \caption{The structure of the implementation.}
+    \label{fig:struct}
+\end{figure} 
 Once given the algorithm as described in Section \ref{sec:alg}, the implementation is straightforward. However, to make the implementation general and extendible is not trivial.
+
+The implemented project consists of several parts as shown in Figure \ref{fig:struct}.
 
 First of all, a complete, full functioning data set system is implemented. The data set system is able to load ARFF files as the WEKA system does. It is able to take as many as $2^{64}-1$ instances, each consists of as many as $2^{64}-1$ attributes. The data set system is able to take numeric attributes and nominal attributes, and is able to be extended to add other attribute types. 
 
