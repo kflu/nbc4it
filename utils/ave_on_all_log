@@ -1,0 +1,13 @@
+#!/bin/sh
+# \
+exec tclsh $0 $@
+
+set sum 0;
+set n 0;
+set f [glob entry*.log.*]
+foreach i $f {
+  set tmp [exec {../utils/grep_ave_acc} $i];
+  set sum [expr $tmp + $sum];
+  incr n;
+}
+puts [expr {$sum/$n}];
